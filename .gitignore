@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files (too large for git)
+*.h5ad
+*.h5
+*.loom
+*.pkl
+*.npz
+*.npy
+*.csv.gz
+*.tar.gz
+*.zip
+
+# Results logs (keep .json summaries, exclude verbose logs)
+results/*.log
+
+# Conda / virtualenv
+.env
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

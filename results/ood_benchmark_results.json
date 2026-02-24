@@ -1,0 +1,30 @@
+{
+  "Baseline (MSE-only)": {
+    "id": {
+      "pearson": 0.3571968346880636,
+      "pearson_std": 0.5221441359707711,
+      "go_auroc": 0.4341810549299248,
+      "monotonicity": 1.0
+    },
+    "ood": {
+      "pearson": 0.3516402005401761,
+      "pearson_std": 0.5319366536752709,
+      "go_auroc": 0.4265309127448752,
+      "monotonicity": 1.0
+    }
+  },
+  "HCE (\u03bb=0.5)": {
+    "id": {
+      "pearson": 0.33934634788358303,
+      "pearson_std": 0.5263284161980243,
+      "go_auroc": 0.6512732866355143,
+      "monotonicity": 1.0
+    },
+    "ood": {
+      "pearson": 0.3289310606731525,
+      "pearson_std": 0.5422661453965246,
+      "go_auroc": 0.6755112012405108,
+      "monotonicity": 1.0
+    }
+  }
+}
