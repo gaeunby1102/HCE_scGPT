@@ -1,0 +1,8 @@
+[MSigDB] 캐시 로드: /data4/HCE_gears_data/hallmark_genes.json
+[MSigDB] 리프 44개, 유전자 매핑 완료 (누락=0)
+[scGPT+HCE 구조 검증]
+  cell_emb shape: torch.Size([8, 512])
+  go_logits shape: torch.Size([8, 44])
+  HCE loss: 0.8814
+  n_go=44, DAG=OntologyDAG(nodes=52, edges=51)
+  ✓ scGPT + HCE 통합 구조 정상

@@ -21,8 +21,8 @@ build/
 *.tar.gz
 *.zip
 
-# Results logs (keep .json summaries, exclude verbose logs)
-results/*.log
+# Results logs: training logs included for reproducibility
+# results/*.log
 
 # Conda / virtualenv
 .env
