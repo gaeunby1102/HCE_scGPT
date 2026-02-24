@@ -131,8 +131,6 @@ def build_k562_go_ontology():
     K562 분석에 맞는 GO 계층 구조 구성.
     PATHWAY_GENES의 리프를 사용하는 OntologyDAG 반환.
     """
-    import sys
-    sys.path.insert(0, "/data2/Atlas_Normal")
     from HCE.ontology import OntologyDAG
 
     dag = OntologyDAG()

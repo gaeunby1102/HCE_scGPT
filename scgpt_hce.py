@@ -10,10 +10,8 @@ HCE 헤드가 부착된 래퍼 모델과 HCE-aware train 함수를 제공.
     scGPT forward() → cell embedding → HCE GO 헤드 추가
     train 루프에서 기존 loss + λ·HCE_loss
 
-scGPT 환경: /home/t1/miniconda3/envs/scgpt
-
 실행:
-    /home/t1/miniconda3/envs/scgpt/bin/python -m HCE.scgpt_hce
+    python -m HCE.scgpt_hce
 """
 
 from __future__ import annotations
@@ -21,8 +19,6 @@ import sys
 import os
 import warnings
 warnings.filterwarnings("ignore")
-
-sys.path.insert(0, "/data2/Atlas_Normal")
 
 from typing import Dict, List, Optional, Tuple
 import numpy as np
@@ -220,7 +216,7 @@ def test_scgpt_hce_structure():
     from HCE.msigdb_ontology import build_hallmark_ontology
     from HCE.loss import HierarchicalPerturbationLoss
 
-    dag, term_to_idx, _ = build_hallmark_ontology("/data4/HCE_gears_data")
+    dag, term_to_idx, _ = build_hallmark_ontology()
     n_go = len(term_to_idx)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"

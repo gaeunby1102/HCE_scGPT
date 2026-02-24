@@ -5,7 +5,7 @@ GEARS_Model + HCE 헤드를 서브클래싱으로 통합.
 gears2 conda 환경에서 실행해야 함.
 
 사용 예시:
-    /home/t1/miniconda3/envs/gears2/bin/python -m HCE.gears_hce
+    python -m HCE.gears_hce
 
 핵심 변경사항
 -------------
@@ -21,7 +21,6 @@ GEARSWithHCE(GEARS):
 from __future__ import annotations
 import sys
 import os
-sys.path.insert(0, "/data2/Atlas_Normal")
 
 from copy import deepcopy
 from typing import Dict, List, Optional, Tuple

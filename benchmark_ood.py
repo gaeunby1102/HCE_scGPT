@@ -10,12 +10,11 @@ HCE vs Baseline OOD 벤치마크 — 수정된 버전.
      → 진짜 OOD: 학습에서 한 번도 안 본 유전자 KO 샘플
 
 실행:
-    /home/t1/miniconda3/envs/gears2/bin/python -m HCE.benchmark_ood
+    python -m HCE.benchmark_ood
 """
 
 from __future__ import annotations
 import os, sys, json, time
-sys.path.insert(0, "/data2/Atlas_Normal")
 
 import numpy as np
 import torch
@@ -24,12 +23,13 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, Subset
 from sklearn.metrics import roc_auc_score
 
+import HCE.config as cfg
 from HCE.data_replogle import ReplogleDataset, build_k562_go_ontology, N_PATHWAYS
 from HCE.model import HCEPerturbationPredictor
 
 DEVICE      = "cuda" if torch.cuda.is_available() else "cpu"
-DATA_PATH   = "/data2/Atlas_Normal/IL17RD_scdiffeq/jacobian_analysis/replogle_data/K562_gwps_raw_bulk.h5ad"
-RESULTS_DIR = "/data2/Atlas_Normal/HCE/results"
+DATA_PATH   = cfg.K562_DATA
+RESULTS_DIR = cfg.RESULTS_ROOT
 GENE_SUBSET = 2000
 SEED        = 42
 

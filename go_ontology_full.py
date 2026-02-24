@@ -10,11 +10,8 @@ HCE에 사용할 OntologyDAG + 유전자 목록 구성.
     3. BP / CC / MF 세 가지 하위 온톨로지를 통합
     4. gene2go_all.pkl (GEARS) 로 gene → GO term 매핑
 
-OBO 파일: /data4/HCE_gears_data/go-basic.obo
-gene2go:  /data4/HCE_gears_data/gene2go_all.pkl
-
 실행:
-    /home/t1/miniconda3/envs/gears2/bin/python -m HCE.go_ontology_full
+    python -m HCE.go_ontology_full
 """
 
 from __future__ import annotations
@@ -25,11 +22,11 @@ import json
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
-sys.path.insert(0, "/data2/Atlas_Normal")
+import HCE.config as cfg
 
-OBO_PATH    = "/data4/HCE_gears_data/go-basic.obo"
-GENE2GO     = "/data4/HCE_gears_data/gene2go_all.pkl"
-RESULTS_DIR = "/data2/Atlas_Normal/HCE/results"
+OBO_PATH    = cfg.GO_OBO
+GENE2GO     = cfg.GENE2GO
+RESULTS_DIR = cfg.RESULTS_ROOT
 
 # GO namespace 약어
 NS_MAP = {
@@ -166,11 +163,13 @@ def load_or_build_go_dag(
     min_genes: int = 50,
     max_genes: int = 2000,
     namespaces: Optional[Set[str]] = None,
-    cache_dir: str = "/data4/HCE_gears_data",
+    cache_dir: Optional[str] = None,
 ) -> Tuple["OntologyDAG", Dict[str, int], Dict[str, List[str]]]:
     """
     캐시가 있으면 로드, 없으면 OBO에서 빌드.
     """
+    if cache_dir is None:
+        cache_dir = cfg.GEARS_DATA_DIR
     ns_tag = "_".join(sorted(namespaces or {"BP", "CC", "MF"}))
     cache_file = os.path.join(
         cache_dir,
@@ -210,7 +209,7 @@ def build_full_go_dataset(
     min_genes: int = 50,
     max_genes: int = 2000,
     go_threshold_pct: float = 75.0,
-    cache_dir: str = "/data4/HCE_gears_data",
+    cache_dir: Optional[str] = None,
 ):
     """
     BP + CC + MF 전체 GO 온톨로지 기반 ReplogleDataset.
@@ -312,11 +311,11 @@ if __name__ == "__main__":
     # OBO 파일 다운로드 확인
     if not os.path.exists(OBO_PATH):
         print(f"[오류] OBO 파일 없음: {OBO_PATH}")
-        print("다운로드: wget -P /data4/HCE_gears_data/ http://purl.obolibrary.org/obo/go/go-basic.obo")
+        print(f"다운로드: wget -P {cfg.GEARS_DATA_DIR}/ http://purl.obolibrary.org/obo/go/go-basic.obo")
         sys.exit(1)
 
     dag, term_to_idx, term_genes = load_or_build_go_dag(
-        min_genes=50, max_genes=2000, cache_dir="/data4/HCE_gears_data"
+        min_genes=50, max_genes=2000
     )
     print(f"\nDAG: {dag}")
     print(f"리프 term: {len(term_to_idx)}개")

@@ -4,23 +4,23 @@ gears_norman_hce.py
 Norman 데이터 + PertData 파이프라인으로 GEARSWithHCE 전체 학습.
 
 실행:
-    /home/t1/miniconda3/envs/gears2/bin/python -m HCE.gears_norman_hce
+    python -m HCE.gears_norman_hce
 """
 
 from __future__ import annotations
 import sys
 import os
-sys.path.insert(0, "/data2/Atlas_Normal")
 
 import warnings
 warnings.filterwarnings("ignore")
 
 from gears import PertData
+import HCE.config as cfg
 from HCE.gears_hce import GEARSWithHCE
 
-DATA_PATH   = "/data4/HCE_gears_data"
+DATA_PATH   = cfg.GEARS_DATA_DIR
 DEVICE      = "cuda"
-SAVE_PATH   = "/data4/HCE_gears_data/gears_hce_norman"
+SAVE_PATH   = cfg.GEARS_SAVE_NORMAN
 
 
 def main():

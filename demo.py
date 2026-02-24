@@ -3,10 +3,7 @@ demo.py
 -------
 HCE 모듈 데모: Replogle K562 실제 섭동 데이터로 전체 파이프라인 실행.
 
-실행 (gears2 환경):
-    /home/t1/miniconda3/envs/gears2/bin/python -m HCE.demo
-
-기본 환경 (torch만 있는 경우):
+실행:
     python -m HCE.demo
 """
 
@@ -18,10 +15,10 @@ import torch.optim as optim
 import numpy as np
 from torch.utils.data import DataLoader
 
-sys.path.insert(0, "/data2/Atlas_Normal")
+import HCE.config as cfg
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-DATA_PATH = "/data2/Atlas_Normal/IL17RD_scdiffeq/jacobian_analysis/replogle_data/K562_gwps_raw_bulk.h5ad"
+DATA_PATH = cfg.K562_DATA
 GENE_SUBSET = 2000   # 분산 상위 2000개 유전자만 사용 (메모리 절약)
 
 print(f"[Device] {DEVICE}\n")

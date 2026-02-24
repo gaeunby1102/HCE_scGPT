@@ -237,8 +237,8 @@ biological_process
 
 | 항목 | 값 |
 |---|---|
-| 파일 | `/data4/HCE_gears_data/go-basic.obo` |
-| 캐시 | `/data4/HCE_gears_data/go_dag_min50_max2000_BP_CC_MF.pkl` |
+| 파일 | `${HCE_DATA_ROOT}/go-basic.obo` (설정: `config.py` 또는 `HCE_GO_OBO` 환경변수) |
+| 캐시 | `${HCE_DATA_ROOT}/go_dag_min50_max2000_BP_CC_MF.pkl` |
 | 유효 텀 수 | **3,693** (min_genes≥50, max_genes≤2000) |
 | 리프 수 | **1,121** |
 | BP | 2,513 |
@@ -248,9 +248,7 @@ biological_process
 ```python
 from HCE.go_ontology_full import load_or_build_go_dag
 dag, term_to_idx, pathway_genes = load_or_build_go_dag(
-    data_dir="/data4/HCE_gears_data",
-    namespaces={"biological_process", "cellular_component", "molecular_function"},
-    min_genes=50,
+    min_genes=50,   # cache_dir은 config.py에서 자동 설정
 )
 ```
 
@@ -299,40 +297,44 @@ Hallmark 50 gene sets를 4-level 계층으로 구성.
 Norman PertData: n_genes=5,045 / n_perts=9,853
 Split: combo_seen0:9 / combo_seen1:43 / combo_seen2:19 / unseen_single:36
 GEARSWithHCE: GO terms=16, lambda_hce=0.3, epochs=15
-저장 경로: /data4/HCE_gears_data/gears_hce_norman
-로그: /data2/Atlas_Normal/HCE/results/norman_hce.log
+저장 경로: ${HCE_GEARS_SAVE_NORMAN}  (config.py 설정)
+로그: results/norman_hce.log
 ```
 
 ---
 
 ## 실행 방법
 
+경로 설정 (`config.py` 또는 환경변수):
+```bash
+export HCE_DATA_ROOT=/path/to/data          # go-basic.obo, gene2go_all.pkl 등
+export HCE_K562_DATA=/path/to/K562.h5ad     # K562 perturbation data
+export HCE_SCGPT_BRAIN=/path/to/scGPT_brain # scGPT_brain checkpoint dir
+export HCE_BRAIN_ATLAS=/path/to/brain.h5ad  # fetal brain atlas
+```
+
 ### OOD 벤치마크
 ```bash
-cd /data2/Atlas_Normal
-/home/t1/miniconda3/envs/gears2/bin/python -m HCE.benchmark_ood
+python -m HCE.benchmark_ood
 ```
 
 ### GEARS + Norman 전체 학습
 ```bash
-/home/t1/miniconda3/envs/gears2/bin/python -m HCE.gears_norman_hce \
-  > HCE/results/norman_hce.log 2>&1
+python -m HCE.gears_norman_hce > results/norman_hce.log 2>&1
 ```
 
 ### scGPT 구조 검증
 ```bash
-/home/t1/miniconda3/envs/scgpt/bin/python -m HCE.scgpt_hce
+python -m HCE.scgpt_hce
 ```
 
 ### Full GO 온톨로지 빌드
 ```bash
-/home/t1/miniconda3/envs/gears2/bin/python -m HCE.go_ontology_full
+python -m HCE.go_ontology_full
 ```
 
 ### Python 코드에서 직접 사용
 ```python
-import sys
-sys.path.insert(0, "/data2/Atlas_Normal")
 from HCE import HCEPerturbationPredictor
 from HCE.data_replogle import ReplogleDataset, build_k562_go_ontology
 
@@ -371,8 +373,8 @@ loss, info = model.compute_loss(expr, pert_mask, delta_expr, go_labels)
 | obonet | ✓ (GO OBO 파싱) |
 | gseapy | ✓ (MSigDB) |
 
-**Conda 환경**: `/home/t1/miniconda3/envs/gears2` (주)
-**scGPT 환경**: `/home/t1/miniconda3/envs/scgpt`
+**주 환경**: GEARS (`gears`, `torch_geometric`, `torch_scatter` 필요)
+**scGPT 환경**: `scgpt==0.2.1` 필요 (Jacobian 분석)
 
 ---
 

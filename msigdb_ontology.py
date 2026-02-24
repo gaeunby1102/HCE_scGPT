@@ -15,15 +15,15 @@ from __future__ import annotations
 import json
 import os
 import sys
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
-sys.path.insert(0, "/data2/Atlas_Normal")
+import HCE.config as cfg
 
 ONTOLOGY_JSON = os.path.join(os.path.dirname(__file__), "hallmark_ontology.json")
 
 
 def build_hallmark_ontology(
-    cache_dir: str = "/data4/HCE_gears_data",
+    cache_dir: Optional[str] = None,
 ) -> Tuple["OntologyDAG", Dict[str, int], Dict[str, List[str]]]:
     """
     MSigDB Hallmark 기반 OntologyDAG + 유전자 목록 반환.
@@ -37,13 +37,16 @@ def build_hallmark_ontology(
     from HCE.ontology import load_ontology_from_json, OntologyDAG
     import gseapy as gp
 
+    if cache_dir is None:
+        cache_dir = cfg.GEARS_DATA_DIR
+
     # ── DAG 로드 ──────────────────────────────────────────────────
     dag = load_ontology_from_json(ONTOLOGY_JSON)
     leaves = sorted(dag.get_leaves())
     term_to_idx = {t: i for i, t in enumerate(leaves)}
 
     # ── MSigDB 유전자 목록 로드 (캐시) ────────────────────────────
-    cache_path = os.path.join(cache_dir, "hallmark_genes.json")
+    cache_path = cfg.HALLMARK_CACHE
     os.makedirs(cache_dir, exist_ok=True)
 
     if os.path.exists(cache_path):
@@ -81,7 +84,7 @@ def build_hallmark_dataset(
     adata_path: str,
     gene_subset: int = 2000,
     go_threshold_pct: float = 75.0,
-    cache_dir: str = "/data4/HCE_gears_data",
+    cache_dir: Optional[str] = None,
 ):
     """
     MSigDB Hallmark 기반 ReplogleDataset 생성 (data_replogle.py 대체).
@@ -194,10 +197,10 @@ def build_hallmark_dataset(
 # CLI 검증
 # ======================================================================
 if __name__ == "__main__":
+    import HCE.config as cfg
     dataset, dag, term_to_idx = build_hallmark_dataset(
-        "/data2/Atlas_Normal/IL17RD_scdiffeq/jacobian_analysis/replogle_data/K562_gwps_raw_bulk.h5ad",
+        cfg.K562_DATA,
         gene_subset=2000,
-        cache_dir="/data4/HCE_gears_data",
     )
     print(f"\n온톨로지: {dag}")
     print(f"리프: {sorted(dag.get_leaves())}")
