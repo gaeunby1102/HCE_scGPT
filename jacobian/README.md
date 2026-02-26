@@ -1,186 +1,169 @@
 # HCE Jacobian Analysis: Ontology-Guided Gene Attribution
 
-> scGPT_brain + HCE GO head를 결합해 **GO 경로별 유전자 기여도**를 Jacobian으로 계산.
-> 기존 세포 유형 분류 기반 Jacobian에서 **GO 계층 구조 기반 attribution**으로 확장.
+> scGPT_brain + HCE Brain Cell Ontology 파인튜닝 → **∂P(ontology_node) / ∂gene_expression** Jacobian 계산.
+> GO 계층 구조가 Jacobian 수준에서도 단조성을 강제하는지 실험적으로 검증.
 
 ---
 
-## 배경
+## 실험 결과 요약
 
-### 기존 Jacobian 분석의 한계
-
-```
-scFoundation → cell_emb → cell_type_logit
-                               ↓ Jacobian
-               ∂(RG) / ∂(PAX6)   ← "PAX6가 RG 분류에 기여하는가"
-
-문제: 세포 유형이라는 단 하나의 타겟만 존재
-     생물학적 경로 수준 해석 불가
-     계층 정보 없음 (RG ≠ Neuron ≠ Neural Cell 구별 없음)
-```
-
-### HCE Jacobian이 추가하는 것
-
-```
-scGPT_brain → cell_emb → HCE GO head → GO_logit_k  (k = 계층 내 모든 노드)
-                                             ↓ Jacobian
-              ∂(P(apoptosis))  / ∂(CASP3)    ← 리프 수준
-              ∂(P(cell_death)) / ∂(CASP3)    ← 중간 수준 (더 크야야 함)
-              ∂(P(Neuron))     / ∂(DCX)      ← 세포 유형 계층
-              ∂(P(Neural Cell))/ ∂(DCX)      ← 더 상위 계층
-
-→ 같은 유전자에 대해 온톨로지 레벨별 attribution 비교
-→ 계층 일관성: ∂(parent) ≥ ∂(child) 검증
-→ 경로 특이적 마커 발굴
-```
+| 항목 | 결과 |
+|------|------|
+| Step 1 val_acc | **67.5%** (best epoch 11/15) |
+| Ext (Excitatory Neuron) | **95.6%** |
+| Neuroblast | 66.7% |
+| Inh (Inhibitory Neuron) | 44.3% |
+| RG (Radial Glia) | 34.6% |
+| Jacobian 단조성 (leaf→parent) | **1.000** ✅ |
+| Jacobian 단조성 (mid→root) | 0.000 ❌ (softmax 수학적 한계) |
 
 ---
 
-## 모델: scGPT_brain
+## 모델 구조
 
-| 항목 | 값 |
-|---|---|
-| 학습 데이터 | CellxGene Census brain — **13.2M 뇌 세포** |
-| d_model | 512 |
-| layers | 12 Transformer layers |
-| heads | 8 attention heads |
-| input style | **continuous** (linear value_encoder) |
-| max_seq_len | 1,200 genes |
-| n_bins | 51 |
+```
+gene_values (float, requires_grad=True)
+    ↓ scGPT_brain value_encoder: Linear(1 → 512)   ← continuous, gradient 직통
+    ↓ Transformer × 12 layers (frozen)
+    ↓ cell_emb (B, 512) — mean pooling
+    ↓ HCE head: LayerNorm → Linear(512→256) → GELU → Dropout → Linear(256→4)
+    ↓ logits (B, 4)  →  softmax  →  leaf_probs
+    ↓ node_prob(node) = Σ leaf_probs[descendants]
+    ↓ ∂P(node) / ∂gene_values    ← Jacobian 목표
+```
 
-**Gradient 경로 (scFoundation 대비 단순)**:
-```
-gene_expr (float)
-    ↓ value_encoder: Linear(1 → 512)   ← continuous, gradient 직통
-    ↓ Transformer × 12
-    ↓ cell_emb (mean pooling, 512D)
-    ↓ HCE GO head (512 → n_go)
-    ↓ GO_logit_k
-    ↓ ∂(GO_k) / ∂(gene_expr_i)        ← 목표
-```
-scFoundation처럼 `DifferentiableTokenEmb` 수동 수정 불필요.
+**scGPT_brain**: CellxGene Census 13.2M 뇌 세포 사전학습 (d_model=512, 12 layers, 8 heads)
+scGPT는 frozen, HCE head만 학습 (15 epochs, 1800 cells).
 
 ---
 
-## 데이터
+## Brain Cell Ontology
 
-| 항목 | 내용 |
-|---|---|
-| 세포 수 | 116,529 cells |
-| 유전자 수 | 49,133 genes |
-| 세포 유형 | RG (29k) / Neuroblast (42k) / Ext (27k) / Inh (17k) |
-| 발달 단계 | Fetal 1st/2nd/3rd trimester → Neonatal |
-| 시간 정보 | `age_days_repr` (49–451일) |
-
-경로 설정은 `HCE_BRAIN_ATLAS` 환경 변수 또는 `config.py`의 `BRAIN_ATLAS`를 통해 지정.
-
----
-
-## 분석 단계 (Steps)
-
-### Step 1: scGPT_brain + HCE 파인튜닝 (`step1_finetune_hce.py`)
-
-scGPT_brain 위에 HCE Cell Type Classifier를 붙여서 뇌 세포 유형 분류를 학습.
-
-**Brain Cell Ontology (Cell 계층)**:
 ```
 Cell
 └── Neural Cell
     ├── Neuron
-    │   ├── Excitatory Neuron    → Ext (TBR1, SATB2, SLC17A7)
-    │   └── Inhibitory Neuron    → Inh (GAD1, GAD2, DLX2)
+    │   ├── Excitatory Neuron  → Ext  (TBR1, SATB2, SLC17A7)
+    │   └── Inhibitory Neuron  → Inh  (GAD1, GAD2, DLX2)
     └── Neural Progenitor
-        ├── Radial Glia          → RG (PAX6, SOX2, HES1)
-        └── Neuroblast           → Neuroblast (DCX, TUBB3, NEUROD1)
+        ├── Radial Glia        → RG   (PAX6, SOX2, HES1)
+        └── Neuroblast         → Neuroblast (DCX, TUBB3, NEUROD1)
 ```
 
-```python
-# 핵심 구조
-scgpt_brain = load_pretrained_scgpt(cfg.SCGPT_BRAIN_DIR)
-hce_model = ScGPTBrainHCE(
-    scgpt_brain,
-    n_classes=4,          # RG / Neuroblast / Ext / Inh
-    d_model=512,
-)
-# HierarchicalCrossEntropyLoss로 파인튜닝
-# scGPT frozen, HCE head만 학습
-```
-
-**출력**: 파인튜닝된 `hce_brain_best.pt` → `jacobian/results/`
-
-### Step 2: HCE Jacobian 계산 (`step2_hce_jacobian.py`)
-
-각 세포에 대해 GO 계층 레벨별 Jacobian 행렬 계산.
-
-```python
-# 입력: (B, n_genes) 발현량 텐서, requires_grad=True
-x = expr_tensor.requires_grad_(True)
-
-# Forward
-output_dict, go_logits = hce_model(gene_ids, x)
-all_probs = hce_loss.propagate_probs(torch.sigmoid(go_logits))
-# all_probs: (B, n_all_terms)  ← 리프 + 중간 + 루트 모든 노드 확률
-
-# Jacobian: ∂(GO_k) / ∂(x_i)  for each term k
-J = torch.autograd.grad(
-    all_probs[:, term_idx].sum(), x,
-    retain_graph=True
-)[0]   # (B, n_genes)
-```
-
-**저장**: `results/jacobian_{term}.npy` — 각 GO term별 (n_cells × n_genes) 행렬
-
-### Step 3: 시각화 (`step3_visualize.py`)
-
-1. **레벨별 Top 유전자 비교**
-   - `∂(RG) / ∂(gene)` vs `∂(Neuron) / ∂(gene)` vs `∂(Neural Cell) / ∂(gene)`
-   - 리프 특이적 마커 vs 범용 신경 마커 구분
-
-2. **계층 일관성 (Monotonicity) 검증**
-   - `|∂(parent)| ≥ |∂(child)|` 비율 계산
-   - HCE 학습이 Jacobian 레벨에서도 계층 구조를 반영하는지 검증
-
-3. **발달 시계열 분석**
-   - `age_days_repr`로 세포를 시간 축 정렬
-   - RG → Neuroblast → Ext 분화 경로에서 GO Jacobian 변화 추적
-   - 예: `∂(P(Radial Glia)) / ∂(SOX2)` 는 초기 발달에서 높고 후기에서 낮아야 함
-
-4. **GO pathway heatmap**
-   - x축: 유전자 (known markers 하이라이트)
-   - y축: GO term (계층 순서)
-   - 값: mean |Jacobian| per cell type
+8개 노드 분석: 리프 4개 + 중간 2개 (Neuron, Neural_Progenitor) + 루트 2개 (Neural_Cell, Cell)
 
 ---
 
-## 기존 분석과 비교
+## Jacobian 단조성 (핵심 결과)
 
-| 분석 | 모델 | 타겟 | 신규 기여 |
-|---|---|---|---|
-| path_b (기존) | scFoundation | ∂(cell_emb) / ∂(gene) | Expression-level gradient |
-| path_d (기존) | scFoundation | Integrated Gradients | Attribution baseline |
-| **Step 1-3 (신규)** | **scGPT_brain** | **∂(GO_k) / ∂(gene)** | **Ontology-guided attribution** |
+HCE loss가 Jacobian 수준에서 계층 구조를 강제하는가?
+
+| child → parent | 단조성 비율 | 해석 |
+|----------------|-----------|------|
+| Radial_Glia → Neural_Progenitor | **1.000** ✅ | 완벽한 계층 일관성 |
+| Neuroblast_cell → Neural_Progenitor | **1.000** ✅ | |
+| Excitatory_Neuron → Neuron | **1.000** ✅ | |
+| Inhibitory_Neuron → Neuron | **1.000** ✅ | |
+| Neural_Progenitor → Neural_Cell | 0.000 ❌ | softmax 한계 |
+| Neuron → Neural_Cell | 0.000 ❌ | softmax 한계 |
+| Neural_Cell → Cell | 0.505 | P(NC)≡P(Cell), 노이즈 수준 |
+
+**softmax 수학적 한계**: 4-class softmax에서 P(Neural_Cell) = Σ(모든 leaf) = 1.0 (상수) → Jacobian = 0.
+→ **multi-label sigmoid 구조로 전환하면 해결** 가능.
+
+---
+
+## Top 유전자 분석
+
+### 세포 유형별 리프 노드 Top-20
+
+| 세포 유형 | Top-5 유전자 | Known marker 적중 |
+|----------|-------------|-----------------|
+| RG | MALAT1, KRT36, KRT32, KLRG2, KLHL7 | ❌ |
+| Neuroblast | MALAT1, KRT36, KCNMA1-AS3, KRT1, KRT18P61 | ❌ |
+| Ext | KRT36, KRT32, LAIR2, LINC01448, KRT28 | ❌ |
+| Inh | MALAT1, KRT36, SOX2-OT, KC6, KRT32 | ❌ (SOX2-OT 근접) |
+
+**Top 유전자 패턴:**
+- `MALAT1`: 핵 lncRNA, 신경 발달 전반에서 고발현 → scGPT 강하게 인식
+- `KRT` 계열: 케라틴 유전자, 세포 유형보다 샘플 특이적 노이즈 가능성
+- `LINC` 계열: 비코딩 RNA, 세포 유형 특이적 패턴 있음
+
+**Known marker (PAX6, DCX, GAD1 등) 미검출 원인:**
+1. scGPT frozen → 뇌 세포 분류에 직접 최적화되지 않은 표현
+2. 짧은 fine-tuning (15 epochs, 1800 cells) → HCE head 미수렴
+3. 51-bin 이산화 → gradient 신호 희석
+4. |Jacobian| ∝ 모델 민감도 ≠ 생물학적 중요도
+
+---
+
+## 분석 파이프라인
+
+### Step 1: scGPT_brain + HCE 파인튜닝 (`step1_finetune_hce.py`)
+
+```bash
+python -m HCE.jacobian.step1_finetune_hce
+```
+
+출력: `results/hce_brain_best.pt` (val_acc=67.5%)
+
+### Step 2: Jacobian 계산 (`step2_hce_jacobian.py`)
+
+```bash
+python -m HCE.jacobian.step2_hce_jacobian
+```
+
+800개 세포 (유형별 200개) × 8 온톨로지 노드 × 1200 유전자 위치
+출력: `results/jacobian_results.json` (노드별 × 세포유형별 Top-200 유전자)
+
+```python
+# Jacobian 계산 핵심
+vals = values.to(DEVICE).float().requires_grad_(True)
+logits, _ = model(gene_ids, vals, pad_mask)
+leaf_probs = torch.softmax(logits, dim=-1)       # (B, 4)
+prob = leaf_probs[:, node_leaf_indices].sum(-1)  # (B,) — 노드 확률
+g = torch.autograd.grad(prob.sum(), vals,
+                        retain_graph=True)[0]     # (B, L) — Jacobian
+```
+
+### Step 3: 시각화 (`step3_visualize.py`)
+
+```bash
+python -m HCE.jacobian.step3_visualize
+```
+
+생성 파일:
+| 파일 | 내용 |
+|------|------|
+| `figures/fig1_jacobian_heatmap.png` | 노드 × 세포유형 Top gene heatmap |
+| `figures/fig2_monotonicity.png` | child→parent 단조성 비율 bar chart |
+| `figures/fig3_marker_recall.png` | Known marker Top-K recall |
+| `figures/fig4_level_magnitude.png` | 온톨로지 레벨별 |Jacobian| 크기 |
+| `HCE_Jacobian_Report.md` | 전체 분석 레포트 |
 
 ---
 
 ## 환경 설정
 
 ```bash
-# 필요 패키지
-pip install scgpt scanpy torch
-
-# 경로 설정 (환경변수로 오버라이드 가능)
-export HCE_SCGPT_BRAIN=/path/to/scGPT_brain      # 모델 체크포인트
+export HCE_SCGPT_BRAIN=/path/to/scGPT_brain      # 모델 체크포인트 디렉토리
 export HCE_BRAIN_ATLAS=/path/to/brain_atlas.h5ad  # fetal brain 데이터
 export HCE_JACOBIAN_RESULTS=/path/to/results       # 결과 저장 경로
-
-# 실행
-python -m HCE.jacobian.step1_finetune_hce
-python -m HCE.jacobian.step2_hce_jacobian
-python -m HCE.jacobian.step3_visualize
 ```
 
 | 패키지 | 버전 |
-|---|---|
+|--------|------|
 | scgpt | 0.2.1 |
-| PyTorch | 2.1.2+cu121 |
-| Python | 3.10 |
+| PyTorch | 2.1.2+ |
+| Python | 3.10+ |
+| scanpy | 1.11.5 |
+
+---
+
+## 향후 과제
+
+1. **Multi-label sigmoid 전환**: softmax → sigmoid per node → 루트 단조성 해결
+2. **Full fine-tuning**: scGPT unfreezing → 더 날카로운 Jacobian 신호
+3. **Integrated Gradients**: Jacobian 대신 더 안정적인 attribution 방법 적용
+4. **발달 시계열 분석**: `age_days_repr` 축 정렬 → RG→Neuroblast→Ext 분화 경로 추적
+5. **scGPT + HCE + Norman 연결**: 섭동 예측에 brain 유전자 발현 통합
