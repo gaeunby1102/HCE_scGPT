@@ -70,8 +70,7 @@ def load_scgpt_brain():
     from scgpt.tokenizer import GeneVocab
 
     vocab = GeneVocab.from_file(os.path.join(SCGPT_DIR, "vocab.json"))
-    with open(os.path.join(SCGPT_DIR, "args.json")) as f:
-        args = json.load(f)
+    args  = json.load(open(os.path.join(SCGPT_DIR, "args.json")))
 
     pad_id = vocab[args["pad_token"]]
     model  = TransformerModel(
@@ -129,7 +128,7 @@ class BrainCellDataset(Dataset):
                   if gene_names[i] in vocab]
         print(f"  adata-vocab 겹치는 유전자: {len(common)}/{len(gene_names)}")
 
-        gene_col_idx   = [c[0] for c in common]
+        gene_col_idx  = [c[0] for c in common]
         gene_token_ids = [vocab[c[1]] for c in common]
 
         # 발현값 준비
@@ -204,12 +203,8 @@ class ScGPTBrainHCE(nn.Module):
             MVC=False,
             ECS=False,
         )
-        # mlm_output: (B, seq_len, d_model) → mean over non-pad tokens
-        mlm = output["mlm_output"]  # (B, L, D)
-        pad_mask = src_key_padding_mask  # (B, L), True=pad
-        # non-pad 위치 평균
-        non_pad = (~pad_mask).float().unsqueeze(-1)  # (B, L, 1)
-        cell_emb = (mlm * non_pad).sum(1) / non_pad.sum(1).clamp(min=1)  # (B, D)
+        # scGPT는 cell_emb를 (B, D)로 직접 반환 (내부에서 mean pooling 처리)
+        cell_emb = output["cell_emb"]  # (B, d_model)
         return cell_emb
 
     def forward(self, gene_ids, values, src_key_padding_mask):
@@ -219,6 +214,7 @@ class ScGPTBrainHCE(nn.Module):
 
 
 def main():
+    import importlib
     os.makedirs(SAVE_DIR, exist_ok=True)
     log_path = os.path.join(SAVE_DIR, "step1_finetune.log")
 

@@ -92,12 +92,17 @@ class K562FullGODataset(Dataset):
             return ""
 
         self.pert_genes = [parse_gene(n) for n in adata.obs_names]
-        gene_to_idx = {g: i for i, g in enumerate(gene_names)}
+
+        # var_names는 Ensembl ID이므로 gene_name(symbol) 컬럼으로 pert_mask 생성
+        if 'gene_name' in adata.var.columns:
+            sym_at_top = set(adata.var['gene_name'].values[top_idx].tolist())
+        else:
+            sym_at_top = set(gene_names)
 
         # 섭동 마스크
         self.pert_mask = np.zeros(len(adata), dtype=np.float32)
         for j, g in enumerate(self.pert_genes):
-            if g in gene_to_idx:
+            if g in sym_at_top:
                 self.pert_mask[j] = 1.0
 
         # GO 라벨 (gene2go 기반)
@@ -212,6 +217,8 @@ def run_benchmark(dataset, term_to_idx, dag, lam, logf):
                     if not np.isnan(r): pearsons.append(r)
                 go_preds.append(torch.sigmoid(go_logits).cpu().numpy())
                 go_trues.append(go_lbl.numpy())
+        if not go_preds:
+            return {"pearson": 0.0, "pearson_std": 0.0, "go_auroc": 0.0, "n_valid_terms": 0}
         go_preds = np.concatenate(go_preds)
         go_trues = np.concatenate(go_trues)
         # AUROC (valid terms only)
@@ -244,7 +251,6 @@ def run_benchmark(dataset, term_to_idx, dag, lam, logf):
 def main():
     from HCE.go_ontology_full import load_or_build_go_dag
 
-    os.makedirs(cfg.RESULTS_ROOT, exist_ok=True)
     with open(LOG_PATH, "w") as logf:
         log("=" * 65, logf)
         log("Full GO Benchmark (BP+CC+MF, gene2go 라벨)", logf)
@@ -262,6 +268,8 @@ def main():
         log("\n[2] gene2go 로드...", logf)
         with open(GENE2GO, "rb") as f:
             gene2go_raw = pickle.load(f)
+        # gene2go는 {entrez_id: set(go_terms)} 또는 {gene_symbol: set(go_terms)}
+        # 형식 확인
         sample_key = next(iter(gene2go_raw))
         log(f"  gene2go 형식 예시: {sample_key} → {list(gene2go_raw[sample_key])[:3]}", logf)
         gene2go = gene2go_raw

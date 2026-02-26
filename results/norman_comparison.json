@@ -1,0 +1,65 @@
+{
+  "hce_lambda0.3": {
+    "1": {
+      "mse": 0.8126,
+      "pearson": 0.6921
+    },
+    "2": {
+      "mse": 0.8098,
+      "pearson": 0.009
+    },
+    "3": {
+      "mse": 0.8154,
+      "pearson": 0.0077
+    },
+    "4": {
+      "mse": 0.8174,
+      "pearson": 0.0059
+    },
+    "5": {
+      "mse": 0.8133,
+      "pearson": 0.0055
+    },
+    "6": {
+      "mse": 0.8163,
+      "pearson": 0.0052
+    },
+    "7": {
+      "mse": 0.816,
+      "pearson": 0.0051
+    },
+    "8": {
+      "mse": 0.817,
+      "pearson": 0.005
+    },
+    "9": {
+      "mse": 0.8159,
+      "pearson": 0.0049
+    },
+    "10": {
+      "mse": 0.8157,
+      "pearson": 0.005
+    },
+    "11": {
+      "mse": 0.8158,
+      "pearson": 0.0049
+    },
+    "12": {
+      "mse": 0.8162,
+      "pearson": 0.005
+    },
+    "13": {
+      "mse": 0.8157,
+      "pearson": 0.0048
+    },
+    "14": {
+      "mse": 0.8169,
+      "pearson": 0.0051
+    },
+    "15": {
+      "mse": 0.8153,
+      "pearson": 0.0049
+    }
+  },
+  "note": "GEARS baseline val metrics are printed during training; see gears_baseline_norman/ for saved model"
+}
