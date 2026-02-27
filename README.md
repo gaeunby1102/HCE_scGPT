@@ -60,7 +60,29 @@
 
 ---
 
-### 4. Jacobian 분석 — scGPT_brain + HCE Brain Cell Ontology
+### 4. scGPT_brain + HCE (Norman 섭동 예측 — 도메인 전이 실험)
+
+**설정**: scGPT_brain(frozen) encoder + pert_gene_emb → MLP predictor + HCE loss
+
+```
+scGPT_brain(ctrl_expr)  → cell_emb (512D)   [frozen]
+scGPT.encoder(pert_gene) → pert_emb (512D)   [frozen]
+cat([cell_emb, pert_emb]) → MLP → Δexpr + GO logits
+```
+
+| 모델 | Best Pearson | Test Pearson | 비고 |
+|------|-------------|-------------|------|
+| GEARS baseline | 0.692 | — | ep15=0.005 붕괴 |
+| GEARS + HCE | **0.817** | — | ep15=0.700 안정 |
+| scGPT_brain + HCE (λ=0.1) | 0.165 | 0.193 | 도메인 미스매치 |
+
+> **결과 해석**: scGPT_brain은 뇌 세포(13.2M)로 사전학습, Norman은 K562 암세포주.
+> 도메인 불일치 + 유전자-유전자 상호작용 그래프 부재(GEARS는 GNN 사용)로 성능 차이 발생.
+> scGPT_human + unfreezing 시 의미있는 비교 가능.
+
+---
+
+### 5. Jacobian 분석 — scGPT_brain + HCE Brain Cell Ontology
 
 **설정**: scGPT_brain (13.2M cells pretrained) + HCE head 파인튜닝 → Jacobian 계산
 
@@ -102,6 +124,7 @@ HCE/
 ├── msigdb_ontology.py   # MSigDB Hallmark (50 terms) 온톨로지
 ├── go_ontology_full.py  # 실제 GO (BP+CC+MF, ~3,693 terms)
 ├── scgpt_hce.py         # scGPT 파인튜닝 HCE 드롭인
+├── scgpt_norman_hce.py  # scGPT_brain + HCE → Norman 섭동 예측 (도메인 전이 실험)
 ├── jacobian/
 │   ├── step1_finetune_hce.py   # scGPT_brain + HCE 파인튜닝
 │   ├── step2_hce_jacobian.py   # Jacobian 계산 (∂P(node)/∂gene)
@@ -179,6 +202,7 @@ export HCE_BRAIN_ATLAS=/path/to/brain.h5ad
 python -m HCE.benchmark_ood          # OOD 벤치마크 (Hallmark)
 python -m HCE.benchmark_full_go      # Full GO 벤치마크 (3,693 terms)
 python -m HCE.gears_norman_baseline  # GEARS baseline 비교
+python -m HCE.scgpt_norman_hce       # scGPT_brain + HCE (도메인 전이 실험)
 ```
 
 ### Jacobian 분석 파이프라인
@@ -225,6 +249,7 @@ loss, info = model.compute_loss(expr, pert_mask, delta_expr, go_labels)
 ## 향후 과제
 
 1. **Multi-label sigmoid 전환**: softmax → sigmoid per node → 루트 단조성 해결
-2. **Full fine-tuning**: scGPT unfreezing → 더 날카로운 Jacobian 신호
-3. **Integrated Gradients**: Jacobian 대신 더 안정적인 attribution 방법 적용
-4. **Norman + Adamson 통합 평가**: 공식 GEARS 평가 지표 비교
+2. **scGPT_human + unfreezing**: 올바른 도메인 + 파인튜닝으로 섭동 예측 재실험
+3. **scGPT + GNN 하이브리드**: scGPT cell_emb + GEARS 유전자 상호작용 그래프 결합
+4. **Integrated Gradients**: Jacobian 대신 더 안정적인 attribution 방법 적용
+5. **Norman + Adamson 통합 평가**: 공식 GEARS 평가 지표 비교
