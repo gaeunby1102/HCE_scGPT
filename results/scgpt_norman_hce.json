@@ -1,0 +1,44 @@
+{
+  "model": "scGPT_brain + HCE (\u03bb=0.1)",
+  "lambda_hce": 0.1,
+  "epochs": 15,
+  "d_model": 512,
+  "n_go_terms": 44,
+  "best_val_pearson": 0.1651019468848367,
+  "best_epoch": 3,
+  "test_pearson": 0.19331773838613814,
+  "test_pearson_std": 0.14707220944737295,
+  "history": [
+    {
+      "ep": 3,
+      "loss": 0.1137119346366253,
+      "val_pearson": 0.1651019468848367
+    },
+    {
+      "ep": 6,
+      "loss": 0.11398463723199187,
+      "val_pearson": 0.15134021209446344
+    },
+    {
+      "ep": 9,
+      "loss": 0.11150146460280297,
+      "val_pearson": 0.16096301093535217
+    },
+    {
+      "ep": 12,
+      "loss": 0.10469225785245913,
+      "val_pearson": 0.1619355846099193
+    },
+    {
+      "ep": 15,
+      "loss": 0.10313612732081137,
+      "val_pearson": 0.16166642636261128
+    }
+  ],
+  "comparison": {
+    "GEARS_baseline_best": 0.692,
+    "GEARS_baseline_ep15": 0.005,
+    "GEARS_HCE_best": 0.817,
+    "GEARS_HCE_ep15": 0.7
+  }
+}
