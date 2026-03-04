@@ -1,0 +1,48 @@
+============================================================
+GEARS+HCE split-type 평가 시작
+============================================================
+Norman 데이터 로딩...
+Split 구성:
+  combo_seen0: 9 conditions
+  combo_seen1: 52 conditions
+  combo_seen2: 18 conditions
+  unseen_single: 37 conditions
+  저장된 config: num_genes=5045, hidden_size=64
+  pert_emb 재설정: 9853 → 5045
+모델 로드 완료: ./data/gears_hce_norman/model.pt
+
+Test set 전체 평가 중...
+Overall test Pearson: 0.7049  (n=116 conditions)
+
+[ Split 유형별 결과 ]
+Split                   N   Mean Pearson      Std
+--------------------------------------------------
+combo_seen0             9         0.7388   0.0686
+combo_seen1            52         0.6463   0.1574
+combo_seen2            18         0.6310   0.1626
+unseen_single          37         0.8149   0.0175
+
+[ combo_seen0 개별 섭동 결과 (n=9) ]
+  POU3F2+FOXL2                        Pearson = 0.7054
+  ZBTB10+PTPN12                       Pearson = 0.7788
+  CEBPB+PTPN12                        Pearson = 0.5720
+  CBL+PTPN12                          Pearson = 0.7838
+  RHOXF2BB+SET                        Pearson = 0.7167
+  CDKN1C+CDKN1B                       Pearson = 0.7917
+  CDKN1C+CDKN1A                       Pearson = 0.7165
+  CDKN1B+CDKN1A                       Pearson = 0.8038
+  C3orf72+FOXL2                       Pearson = 0.7808
+
+[ unseen_single 개별 섭동 결과 ]
+  ctrl+MAP7D1                         Pearson = 0.8409
+  BCL2L11+ctrl                        Pearson = 0.8402
+  MAP7D1+ctrl                         Pearson = 0.8359
+  ctrl+ISL2                           Pearson = 0.8340
+  BCORL1+ctrl                         Pearson = 0.8335
+  ISL2+ctrl                           Pearson = 0.8332
+  NCL+ctrl                            Pearson = 0.8306
+  CBL+ctrl                            Pearson = 0.8296
+  PTPN12+ctrl                         Pearson = 0.8282
+  ctrl+CDKN1A                         Pearson = 0.8279
+
+결과 저장: /data2/Atlas_Normal/HCE/results/eval_by_split.json
