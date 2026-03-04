@@ -78,7 +78,61 @@ cat([cell_emb, pert_emb]) → MLP → Δexpr + GO logits
 
 > **결과 해석**: scGPT_brain은 뇌 세포(13.2M)로 사전학습, Norman은 K562 암세포주.
 > 도메인 불일치 + 유전자-유전자 상호작용 그래프 부재(GEARS는 GNN 사용)로 성능 차이 발생.
-> scGPT_human + unfreezing 시 의미있는 비교 가능.
+
+---
+
+### 5. scGPT_brain + HCE, 부분 해동 (Task 2)
+
+**설정**: scGPT_brain의 마지막 2 Transformer layer + value_encoder 해동, 차등 학습률
+
+```
+scGPT_brain  (most layers frozen)
+  ↓ last 2 layers + value_encoder   [lr = 1e-5]
+cell_emb (512D)  +  pert_emb (512D)
+  ↓
+MLP predictor + GO HCE head         [lr = 3e-4]
+  ↓
+Δexpr  +  GO logits
+```
+
+| 모델 | Best Pearson | ep15 Pearson | 비고 |
+|------|-------------|-------------|------|
+| scGPT_brain + HCE (frozen) | 0.165 | 0.193 | Exp 4, 비교 기준 |
+| **scGPT_brain + HCE (finetune)** | **0.2514** | 0.2252 | **+52% vs frozen** |
+
+> **해동의 효과**: last 2 layers unfreeze로 0.193 → 0.2514 (+30%). 뇌 사전학습 도메인 → K562
+> 전이 개선. 단, GEARS GNN(0.817)과의 격차는 유전자 상호작용 그래프 부재가 주원인.
+
+**학습 곡선**:
+```
+Ep  3 | val_pearson = 0.1568
+Ep  6 | val_pearson = 0.2085
+Ep  9 | val_pearson = 0.2196
+Ep 12 | val_pearson = 0.2203
+Ep 15 | val_pearson = 0.2252  (best test = 0.2514)
+```
+
+---
+
+### 6. scGPT + GEARS + HCE (Task 3) — 실행 중
+
+**설정**: scGPT_brain 유전자 임베딩(512D → PCA 64D)으로 GEARS gene_emb / pert_emb 초기화
+
+```
+scGPT_brain.encoder(gene_token)  → (n_genes, 512)   [frozen, 임베딩 추출]
+   ↓ PCA 512D → 64D
+GEARS gene_emb / pert_emb 가중치 초기화
+   ↓
+GEARSWithHCE 학습 (λ_hce=0.3, epochs=15)   ← 현재 실행 중
+```
+
+| 항목 | 값 |
+|------|---|
+| vocab 커버리지 | 90.1% (4547/5045 genes) |
+| PCA 설명 분산 | 48.8% |
+| 현재 상태 | **학습 중** (GPU 36% 사용) |
+
+> 결과는 학습 완료 후 업데이트 예정.
 
 ---
 
@@ -124,7 +178,9 @@ HCE/
 ├── msigdb_ontology.py   # MSigDB Hallmark (50 terms) 온톨로지
 ├── go_ontology_full.py  # 실제 GO (BP+CC+MF, ~3,693 terms)
 ├── scgpt_hce.py         # scGPT 파인튜닝 HCE 드롭인
-├── scgpt_norman_hce.py  # scGPT_brain + HCE → Norman 섭동 예측 (도메인 전이 실험)
+├── scgpt_norman_hce.py  # scGPT_brain + HCE → Norman 섭동 예측 (Exp 4, frozen)
+├── scgpt_norman_finetune.py  # scGPT_brain 부분 해동 + HCE (Exp 5, Task 2)
+├── scgpt_gears_hce.py   # scGPT 임베딩 초기화 GEARS + HCE (Exp 6, Task 3)
 ├── jacobian/
 │   ├── step1_finetune_hce.py   # scGPT_brain + HCE 파인튜닝
 │   ├── step2_hce_jacobian.py   # Jacobian 계산 (∂P(node)/∂gene)
@@ -249,7 +305,8 @@ loss, info = model.compute_loss(expr, pert_mask, delta_expr, go_labels)
 ## 향후 과제
 
 1. **Multi-label sigmoid 전환**: softmax → sigmoid per node → 루트 단조성 해결
-2. **scGPT_human + unfreezing**: 올바른 도메인 + 파인튜닝으로 섭동 예측 재실험
-3. **scGPT + GNN 하이브리드**: scGPT cell_emb + GEARS 유전자 상호작용 그래프 결합
+2. ✅ **scGPT_brain + unfreezing (Task 2)**: last 2 layers unfreeze → Pearson 0.193 → 0.2514 (+30%)
+3. 🔄 **scGPT + GNN 하이브리드 (Task 3)**: scGPT 임베딩으로 GEARS 초기화 → 현재 학습 중
 4. **Integrated Gradients**: Jacobian 대신 더 안정적인 attribution 방법 적용
 5. **Norman + Adamson 통합 평가**: 공식 GEARS 평가 지표 비교
+6. **scGPT_human 도메인 전이**: brain → human으로 올바른 도메인 실험

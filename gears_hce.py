@@ -5,7 +5,7 @@ GEARS_Model + HCE 헤드를 서브클래싱으로 통합.
 gears2 conda 환경에서 실행해야 함.
 
 사용 예시:
-    python -m HCE.gears_hce
+    /home/t1/miniconda3/envs/gears2/bin/python -m HCE.gears_hce
 
 핵심 변경사항
 -------------
@@ -21,6 +21,7 @@ GEARSWithHCE(GEARS):
 from __future__ import annotations
 import sys
 import os
+sys.path.insert(0, "/data2/Atlas_Normal")
 
 from copy import deepcopy
 from typing import Dict, List, Optional, Tuple
@@ -134,16 +135,20 @@ class GEARSModelWithHCE(GEARS_Model):
         pred:       (B, G) 예측 발현량 (기존 GEARS 출력)
         go_logits:  (B, N_GO) GO 분류 로짓 (HCE용)
         """
-        x, pert_idx = data.x, data.pert_idx
+        x = data.x
+        # 원본 GEARS 방식: x[:, 1] = 섭동 인디케이터 (1이면 섭동된 유전자)
+        pert = x[:, 1].reshape(-1, 1)
 
-        if self.no_perturb:
-            out = x.reshape(-1, 1)
+        num_graphs = len(data.batch.unique())
+
+        # ctrl-only 배치 (no perturbation): 간단히 반환
+        # x shape: (B*G, 2) in scgpt env → x[:, 0] = expression only
+        if not torch.any(x[:, 1]):
+            out = x[:, 0].reshape(-1, 1)
             out = torch.split(torch.flatten(out), self.num_genes)
             pred = torch.stack(out)
             go_logits = torch.zeros(pred.shape[0], self.n_go, device=x.device)
             return pred, go_logits
-
-        num_graphs = len(data.batch.unique())
 
         # ── 기존 GEARS forward 재현 (base_emb 중간 추출) ──────────
         emb = self.gene_emb(
@@ -165,15 +170,13 @@ class GEARSModelWithHCE(GEARS_Model):
         base_emb = base_emb + 0.2 * pos_emb
         base_emb = self.emb_trans_v2(base_emb)  # (B*G, H)
 
-        pert_index = []
-        for idx, i in enumerate(pert_idx):
-            for j in i:
-                if j != -1:
-                    pert_index.append([idx, j])
-        pert_index = torch.tensor(pert_index).T
+        # 원본 GEARS와 동일: x[:, 1]==1인 위치를 섭동 인덱스로 사용
+        pert_index = torch.where(
+            pert.reshape(num_graphs, int(x.shape[0] / num_graphs)) == 1
+        )
 
         pert_global_emb = self.pert_emb(
-            torch.LongTensor(list(range(self.num_perts))).to(self.args["device"])
+            torch.LongTensor(list(range(self.num_genes))).to(self.args["device"])
         )
         for idx, layer in enumerate(self.sim_layers):
             pert_global_emb = layer(pert_global_emb, self.G_sim, self.G_sim_weight)
@@ -182,7 +185,9 @@ class GEARSModelWithHCE(GEARS_Model):
 
         base_emb = base_emb.reshape(num_graphs, self.num_genes, -1)
 
-        if pert_index.shape[0] != 0:
+        # pert_track 수집 (in-place 수정 없이 delta 방식으로)
+        delta = torch.zeros_like(base_emb)   # (B, G, H)
+        if pert_index[0].shape[0] != 0:
             pert_track = {}
             for i, j in enumerate(pert_index[0]):
                 if j.item() in pert_track:
@@ -199,7 +204,10 @@ class GEARSModelWithHCE(GEARS_Model):
                     emb_total = self.pert_fuse(torch.stack(list(pert_track.values())))
 
                 for idx, j in enumerate(pert_track.keys()):
-                    base_emb[j] = base_emb[j] + emb_total[idx]
+                    delta[j] = emb_total[idx]   # delta에만 기록
+
+        # base_emb + delta → 새 텐서 (in-place 아님 → autograd 안전)
+        base_emb = base_emb + delta
 
         # ── GO 헤드: gene 축으로 평균 풀링 ───────────────────────
         # base_emb: (B, G, H) → mean over G → (B, H)
@@ -225,7 +233,9 @@ class GEARSModelWithHCE(GEARS_Model):
         cross_gene_out = cross_gene_out * self.indv_w2
         cross_gene_out = torch.sum(cross_gene_out, axis=2)
         out = cross_gene_out + self.indv_b2
-        out = out.reshape(num_graphs * self.num_genes, -1) + x.reshape(-1, 1)
+        # x[:, 0] = expression 잔차 (scgpt env: x shape=(B*G,2), gears2: (B*G,1))
+        expr_residual = x[:, 0].reshape(-1, 1) if x.shape[1] > 1 else x.reshape(-1, 1)
+        out = out.reshape(num_graphs * self.num_genes, -1) + expr_residual
         out = torch.split(torch.flatten(out), self.num_genes)
         pred = torch.stack(out)
 
@@ -308,7 +318,7 @@ class GEARSWithHCE(GEARS):
 
         print_sys(
             f"[HCE] GO terms: {n_go}, lambda_hce: {lambda_hce}, "
-            f"n_genes: {self.num_genes}, n_perts: {self.num_perts}"
+            f"n_genes: {self.num_genes}, n_perts: {getattr(self, 'num_perts', self.num_genes)}"
         )
 
     def train(
