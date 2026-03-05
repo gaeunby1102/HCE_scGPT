@@ -1378,3 +1378,368 @@ combo_seen0 (n=8)
 그림 저장: /data2/Atlas_Normal/HCE/results/figures/interaction_analysis.png
 
 결과 저장: /data2/Atlas_Normal/HCE/results/interaction_analysis.json
+============================================================
+Norman 이중 섭동 상호작용 분석
+시너지 vs 길항 + GEARS+HCE 상호작용 예측 평가
+============================================================
+
+[1] 데이터 로딩...
+
+[2] 모델 로딩...
+모델 로드 완료: ./data/gears_hce_norman/model.pt
+
+[3] 실제 발현 캐시 구축...
+  실제 발현 캐시 완료: 277 조건
+
+[4] 모델 예측 캐시 구축...
+  예측 캐시: test_loader 처리 중...
+  예측 캐시: val_loader 처리 중...
+  예측 캐시: train_loader 처리 중...
+  예측 캐시 완료: 284 조건
+
+[5] 상호작용 분석...
+
+--- combo_seen1 (52 conditions) ---
+  CBL+PTPN9:
+    Pearson(모델 vs 실제)     = 0.0378
+    Pearson(단순합산 baseline)= 0.9206
+    Pearson(상호작용 예측)    = 0.2377
+    실제 시너지: syn=2376, ant=1410, ratio=0.63
+  MAP2K6+SPI1:
+    Pearson(모델 vs 실제)     = -0.0976
+    Pearson(단순합산 baseline)= 0.8118
+    Pearson(상호작용 예측)    = -0.0151
+    실제 시너지: syn=2245, ant=1550, ratio=0.59
+  UBASH3B+PTPN12:
+    Pearson(모델 vs 실제)     = 0.2170
+    Pearson(단순합산 baseline)= 0.9312
+    Pearson(상호작용 예측)    = 0.2389
+    실제 시너지: syn=2418, ant=1365, ratio=0.64
+  DUSP9+MAPK1:
+    Pearson(모델 vs 실제)     = -0.0646
+    Pearson(단순합산 baseline)= 0.8140
+    Pearson(상호작용 예측)    = -0.0089
+    실제 시너지: syn=1960, ant=1881, ratio=0.51
+  DUSP9+ETS2:
+    Pearson(모델 vs 실제)     = 0.0860
+    Pearson(단순합산 baseline)= 0.8655
+    Pearson(상호작용 예측)    = -0.2098
+    실제 시너지: syn=2079, ant=1796, ratio=0.54
+  ZNF318+FOXL2:
+    Pearson(모델 vs 실제)     = -0.2294
+    Pearson(단순합산 baseline)= 0.8793
+    Pearson(상호작용 예측)    = -0.0805
+    실제 시너지: syn=2165, ant=1647, ratio=0.57
+  SET+CEBPE:
+    Pearson(모델 vs 실제)     = 0.0965
+    Pearson(단순합산 baseline)= 0.8480
+    Pearson(상호작용 예측)    = -0.3583
+    실제 길항: syn=1801, ant=2106, ratio=0.46
+  KLF1+COL2A1:
+    Pearson(모델 vs 실제)     = -0.0319
+    Pearson(단순합산 baseline)= 0.8692
+    Pearson(상호작용 예측)    = 0.0829
+    실제 시너지: syn=2118, ant=1726, ratio=0.55
+  PTPN12+OSR2:
+    Pearson(모델 vs 실제)     = -0.0126
+    Pearson(단순합산 baseline)= 0.7254
+    Pearson(상호작용 예측)    = 0.0276
+    실제 시너지: syn=1979, ant=1839, ratio=0.52
+  BPGM+SAMD1:
+    Pearson(모델 vs 실제)     = 0.5369
+    Pearson(단순합산 baseline)= 0.9584
+    Pearson(상호작용 예측)    = -0.3467
+    실제 시너지: syn=2299, ant=1514, ratio=0.60
+  DUSP9+PRTG:
+    Pearson(모델 vs 실제)     = 0.5176
+    Pearson(단순합산 baseline)= 0.9725
+    Pearson(상호작용 예측)    = -0.3241
+    실제 시너지: syn=2278, ant=1568, ratio=0.59
+  BCL2L11+TGFBR2:
+    Pearson(모델 vs 실제)     = -0.2053
+    Pearson(단순합산 baseline)= 0.7830
+    Pearson(상호작용 예측)    = 0.1029
+    실제 시너지: syn=2450, ant=1338, ratio=0.65
+  CEBPB+CEBPA:
+    Pearson(모델 vs 실제)     = 0.5314
+    Pearson(단순합산 baseline)= 0.9657
+    Pearson(상호작용 예측)    = -0.3052
+    실제 시너지: syn=1949, ant=1940, ratio=0.50
+  PTPN12+UBASH3A:
+    Pearson(모델 vs 실제)     = -0.1269
+    Pearson(단순합산 baseline)= 0.8919
+    Pearson(상호작용 예측)    = 0.0892
+    실제 시너지: syn=2355, ant=1439, ratio=0.62
+  FEV+MAP7D1:
+    Pearson(모델 vs 실제)     = 0.5868
+    Pearson(단순합산 baseline)= 0.8978
+    Pearson(상호작용 예측)    = 0.4249
+    실제 시너지: syn=2616, ant=1185, ratio=0.69
+  FOXL2+MEIS1:
+    Pearson(모델 vs 실제)     = 0.2144
+    Pearson(단순합산 baseline)= 0.9094
+    Pearson(상호작용 예측)    = -0.0261
+    실제 시너지: syn=2437, ant=1340, ratio=0.65
+  PTPN12+PTPN9:
+    Pearson(모델 vs 실제)     = 0.0963
+    Pearson(단순합산 baseline)= 0.9349
+    Pearson(상호작용 예측)    = 0.1834
+    실제 시너지: syn=2516, ant=1249, ratio=0.67
+  FOSB+CEBPB:
+    Pearson(모델 vs 실제)     = 0.0740
+    Pearson(단순합산 baseline)= 0.8890
+    Pearson(상호작용 예측)    = 0.0127
+    실제 시너지: syn=2162, ant=1665, ratio=0.56
+  SET+KLF1:
+    Pearson(모델 vs 실제)     = 0.0581
+    Pearson(단순합산 baseline)= 0.8952
+    Pearson(상호작용 예측)    = -0.1020
+    실제 시너지: syn=2158, ant=1760, ratio=0.55
+  PTPN12+SNAI1:
+    Pearson(모델 vs 실제)     = 0.1633
+    Pearson(단순합산 baseline)= 0.8476
+    Pearson(상호작용 예측)    = -0.2560
+    실제 시너지: syn=2444, ant=1322, ratio=0.65
+  BCL2L11+BAK1:
+    Pearson(모델 vs 실제)     = 0.0009
+    Pearson(단순합산 baseline)= 0.4530
+    Pearson(상호작용 예측)    = -0.1099
+    실제 시너지: syn=2246, ant=1548, ratio=0.59
+  IRF1+SET:
+    Pearson(모델 vs 실제)     = 0.0382
+    Pearson(단순합산 baseline)= 0.9178
+    Pearson(상호작용 예측)    = -0.0869
+    실제 시너지: syn=2419, ant=1507, ratio=0.62
+  CBL+CNN1:
+    Pearson(모델 vs 실제)     = 0.2726
+    Pearson(단순합산 baseline)= 0.9037
+    Pearson(상호작용 예측)    = 0.3257
+    실제 시너지: syn=2435, ant=1366, ratio=0.64
+  CBL+UBASH3B:
+    Pearson(모델 vs 실제)     = 0.2334
+    Pearson(단순합산 baseline)= 0.9141
+    Pearson(상호작용 예측)    = 0.3578
+    실제 시너지: syn=2337, ant=1482, ratio=0.61
+  CEBPB+MAPK1:
+    Pearson(모델 vs 실제)     = 0.0467
+    Pearson(단순합산 baseline)= 0.9587
+    Pearson(상호작용 예측)    = 0.1623
+    실제 시너지: syn=2202, ant=1626, ratio=0.58
+  DUSP9+IGDCC3:
+    Pearson(모델 vs 실제)     = 0.4862
+    Pearson(단순합산 baseline)= 0.9703
+    Pearson(상호작용 예측)    = -0.2692
+    실제 시너지: syn=2315, ant=1526, ratio=0.60
+  CEBPB+OSR2:
+    Pearson(모델 vs 실제)     = 0.4779
+    Pearson(단순합산 baseline)= 0.9543
+    Pearson(상호작용 예측)    = -0.1148
+    실제 시너지: syn=2214, ant=1650, ratio=0.57
+  CEBPE+PTPN12:
+    Pearson(모델 vs 실제)     = 0.1934
+    Pearson(단순합산 baseline)= 0.8487
+    Pearson(상호작용 예측)    = -0.2941
+    실제 시너지: syn=1959, ant=1876, ratio=0.51
+  DUSP9+KLF1:
+    Pearson(모델 vs 실제)     = 0.0841
+    Pearson(단순합산 baseline)= 0.9520
+    Pearson(상호작용 예측)    = 0.0934
+    실제 시너지: syn=2053, ant=1826, ratio=0.53
+  FEV+ISL2:
+    Pearson(모델 vs 실제)     = 0.0923
+    Pearson(단순합산 baseline)= 0.8902
+    Pearson(상호작용 예측)    = 0.1927
+    실제 시너지: syn=2650, ant=1117, ratio=0.70
+  POU3F2+CBFA2T3:
+    Pearson(모델 vs 실제)     = -0.0307
+    Pearson(단순합산 baseline)= 0.8651
+    Pearson(상호작용 예측)    = 0.0278
+    실제 시너지: syn=2539, ant=1244, ratio=0.67
+  CEBPE+SPI1:
+    Pearson(모델 vs 실제)     = 0.3396
+    Pearson(단순합산 baseline)= 0.9381
+    Pearson(상호작용 예측)    = -0.1286
+    실제 시너지: syn=2456, ant=1409, ratio=0.64
+  CBL+TGFBR2:
+    Pearson(모델 vs 실제)     = -0.1901
+    Pearson(단순합산 baseline)= 0.9021
+    Pearson(상호작용 예측)    = 0.1674
+    실제 시너지: syn=2352, ant=1436, ratio=0.62
+  FOXA1+FOXL2:
+    Pearson(모델 vs 실제)     = 0.3616
+    Pearson(단순합산 baseline)= 0.8853
+    Pearson(상호작용 예측)    = -0.0109
+    실제 시너지: syn=2431, ant=1362, ratio=0.64
+  ETS2+MAP7D1:
+    Pearson(모델 vs 실제)     = 0.2518
+    Pearson(단순합산 baseline)= 0.9019
+    Pearson(상호작용 예측)    = 0.1441
+    실제 시너지: syn=2466, ant=1343, ratio=0.65
+  FOXF1+FOXL2:
+    Pearson(모델 vs 실제)     = 0.1254
+    Pearson(단순합산 baseline)= 0.8881
+    Pearson(상호작용 예측)    = 0.1066
+    실제 시너지: syn=2533, ant=1255, ratio=0.67
+  LYL1+CEBPB:
+    Pearson(모델 vs 실제)     = 0.0257
+    Pearson(단순합산 baseline)= 0.8786
+    Pearson(상호작용 예측)    = -0.0634
+    실제 시너지: syn=2128, ant=1678, ratio=0.56
+  PTPN12+ZBTB25:
+    Pearson(모델 vs 실제)     = 0.4016
+    Pearson(단순합산 baseline)= 0.9424
+    Pearson(상호작용 예측)    = 0.3299
+    실제 시너지: syn=2491, ant=1287, ratio=0.66
+  DUSP9+SNAI1:
+    Pearson(모델 vs 실제)     = 0.2432
+    Pearson(단순합산 baseline)= 0.7927
+    Pearson(상호작용 예측)    = 0.0650
+    실제 시너지: syn=2520, ant=1338, ratio=0.65
+  [SKIP] RHOXF2BB+ZBTB25: adata에 없음
+  FOSB+PTPN12:
+    Pearson(모델 vs 실제)     = -0.2099
+    Pearson(단순합산 baseline)= 0.7369
+    Pearson(상호작용 예측)    = -0.0732
+    실제 시너지: syn=2013, ant=1795, ratio=0.53
+  SAMD1+PTPN12:
+    Pearson(모델 vs 실제)     = 0.5576
+    Pearson(단순합산 baseline)= 0.9438
+    Pearson(상호작용 예측)    = -0.0067
+    실제 시너지: syn=2338, ant=1459, ratio=0.62
+  FOXL2+HOXB9:
+    Pearson(모델 vs 실제)     = 0.3478
+    Pearson(단순합산 baseline)= 0.9174
+    Pearson(상호작용 예측)    = 0.1450
+    실제 시너지: syn=2278, ant=1507, ratio=0.60
+  ZBTB10+ELMSAN1:
+    Pearson(모델 vs 실제)     = -0.2364
+    Pearson(단순합산 baseline)= 0.9207
+    Pearson(상호작용 예측)    = -0.0166
+    실제 시너지: syn=2555, ant=1253, ratio=0.67
+  JUN+CEBPB:
+    Pearson(모델 vs 실제)     = 0.4028
+    Pearson(단순합산 baseline)= 0.9008
+    Pearson(상호작용 예측)    = 0.0484
+    실제 시너지: syn=2266, ant=1543, ratio=0.59
+  BPGM+ZBTB1:
+    Pearson(모델 vs 실제)     = 0.6147
+    Pearson(단순합산 baseline)= 0.9565
+    Pearson(상호작용 예측)    = -0.1890
+    실제 시너지: syn=2484, ant=1336, ratio=0.65
+  ZBTB10+SNAI1:
+    Pearson(모델 vs 실제)     = 0.0924
+    Pearson(단순합산 baseline)= 0.9038
+    Pearson(상호작용 예측)    = 0.0082
+    실제 시너지: syn=2492, ant=1305, ratio=0.66
+  CEBPE+CEBPB:
+    Pearson(모델 vs 실제)     = 0.4643
+    Pearson(단순합산 baseline)= 0.9307
+    Pearson(상호작용 예측)    = -0.0232
+    실제 시너지: syn=2203, ant=1652, ratio=0.57
+  FOXA3+FOXL2:
+    Pearson(모델 vs 실제)     = 0.3814
+    Pearson(단순합산 baseline)= 0.8802
+    Pearson(상호작용 예측)    = 0.2039
+    실제 시너지: syn=2422, ant=1378, ratio=0.64
+  ZBTB10+DLX2:
+    Pearson(모델 vs 실제)     = -0.2249
+    Pearson(단순합산 baseline)= 0.8848
+    Pearson(상호작용 예측)    = -0.0171
+    실제 시너지: syn=2520, ant=1294, ratio=0.66
+  PLK4+STIL:
+    Pearson(모델 vs 실제)     = -0.2306
+    Pearson(단순합산 baseline)= 0.7347
+    Pearson(상호작용 예측)    = 0.0421
+    실제 시너지: syn=2604, ant=1174, ratio=0.69
+  CBL+UBASH3A:
+    Pearson(모델 vs 실제)     = -0.1019
+    Pearson(단순합산 baseline)= 0.7823
+    Pearson(상호작용 예측)    = 0.0473
+    실제 시너지: syn=2118, ant=1680, ratio=0.56
+
+--- combo_seen0 (9 conditions) ---
+  POU3F2+FOXL2:
+    Pearson(모델 vs 실제)     = 0.2085
+    Pearson(단순합산 baseline)= 0.9084
+    Pearson(상호작용 예측)    = 0.0994
+    실제 시너지: syn=2543, ant=1241, ratio=0.67
+  ZBTB10+PTPN12:
+    Pearson(모델 vs 실제)     = -0.1799
+    Pearson(단순합산 baseline)= 0.9212
+    Pearson(상호작용 예측)    = -0.0647
+    실제 시너지: syn=2356, ant=1421, ratio=0.62
+  CEBPB+PTPN12:
+    Pearson(모델 vs 실제)     = 0.3113
+    Pearson(단순합산 baseline)= 0.8641
+    Pearson(상호작용 예측)    = -0.3266
+    실제 시너지: syn=2154, ant=1642, ratio=0.57
+  CBL+PTPN12:
+    Pearson(모델 vs 실제)     = -0.1431
+    Pearson(단순합산 baseline)= 0.9411
+    Pearson(상호작용 예측)    = 0.0102
+    실제 시너지: syn=2339, ant=1450, ratio=0.62
+  [SKIP] RHOXF2BB+SET: adata에 없음
+  CDKN1C+CDKN1B:
+    Pearson(모델 vs 실제)     = -0.1854
+    Pearson(단순합산 baseline)= 0.9404
+    Pearson(상호작용 예측)    = -0.1495
+    실제 시너지: syn=2228, ant=1579, ratio=0.59
+  CDKN1C+CDKN1A:
+    Pearson(모델 vs 실제)     = 0.0218
+    Pearson(단순합산 baseline)= 0.9454
+    Pearson(상호작용 예측)    = -0.2451
+    실제 시너지: syn=2281, ant=1508, ratio=0.60
+  CDKN1B+CDKN1A:
+    Pearson(모델 vs 실제)     = -0.1853
+    Pearson(단순합산 baseline)= 0.9537
+    Pearson(상호작용 예측)    = -0.1229
+    실제 시너지: syn=2216, ant=1568, ratio=0.59
+  C3orf72+FOXL2:
+    Pearson(모델 vs 실제)     = -0.1860
+    Pearson(단순합산 baseline)= 0.8016
+    Pearson(상호작용 예측)    = 0.0535
+    실제 시너지: syn=2127, ant=1634, ratio=0.57
+
+============================================================
+[ 전체 집계 결과 ]
+============================================================
+
+combo_seen1 (n=51)
+  Mean Pearson(combo):         0.1521 ± 0.2455
+  Mean Pearson(단순합산):      0.8796 ± 0.0853
+  Model > Additive:            0/51 케이스
+  Mean Pearson(상호작용 예측): 0.0085 ± 0.1841
+  Mean 시너지 비율:            0.605 (시너지 우세)
+
+combo_seen0 (n=8)
+  Mean Pearson(combo):         -0.0423 ± 0.1880
+  Mean Pearson(단순합산):      0.9095 ± 0.0488
+  Model > Additive:            0/8 케이스
+  Mean Pearson(상호작용 예측): -0.0932 ± 0.1377
+  Mean 시너지 비율:            0.602 (시너지 우세)
+
+[ 상호작용 예측 Best 5 ]
+  FEV+MAP7D1                     r=0.4249  syn_ratio=0.69
+  CBL+UBASH3B                    r=0.3578  syn_ratio=0.61
+  PTPN12+ZBTB25                  r=0.3299  syn_ratio=0.66
+  CBL+CNN1                       r=0.3257  syn_ratio=0.64
+  UBASH3B+PTPN12                 r=0.2389  syn_ratio=0.64
+
+[ 상호작용 예측 Worst 5 ]
+  CEBPB+CEBPA                    r=-0.3052  syn_ratio=0.50
+  DUSP9+PRTG                     r=-0.3241  syn_ratio=0.59
+  CEBPB+PTPN12                   r=-0.3266  syn_ratio=0.57
+  BPGM+SAMD1                     r=-0.3467  syn_ratio=0.60
+  SET+CEBPE                      r=-0.3583  syn_ratio=0.46
+
+[ 상호작용 강도 Top 5 ]
+  CEBPB+CEBPA                    magnitude=0.0389  (시너지)
+  SET+CEBPE                      magnitude=0.0251  (길항)
+  FOSB+CEBPB                     magnitude=0.0243  (시너지)
+  ZBTB10+DLX2                    magnitude=0.0236  (시너지)
+  MAP2K6+SPI1                    magnitude=0.0235  (시너지)
+
+[6] 시각화...
+그림 저장: /data2/Atlas_Normal/HCE/results/figures/interaction_analysis.png
+
+결과 저장: /data2/Atlas_Normal/HCE/results/interaction_analysis.json

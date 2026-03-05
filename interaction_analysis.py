@@ -8,9 +8,9 @@ Norman 이중 섭동 상호작용 분석.
   GEARS+HCE가 이 상호작용을 얼마나 잘 예측하는가?
 
 분석 대상:
-  combo_seen2 (18개): 두 유전자 모두 훈련 포함 → 단일 효과 참조 가능
-  combo_seen1 (52개): 한 유전자만 포함 → 부분 참조
-  combo_seen0 (9개):  둘 다 미포함 → 시너지 예측 한계 케이스
+  combo_seen1 (52개): 한 유전자만 훈련 포함 → 부분 참조 가능
+  combo_seen0 (9개):  둘 다 미포함 → OOD 시너지 예측 한계 케이스
+  (combo_seen2 제외: 훈련 셋 내 유전자로만 구성, 독립적 OOD 평가 불가)
 
 실행:
     cd /data2/Atlas_Normal
@@ -168,7 +168,7 @@ def analyze(gears, pert_data, actual_cache, pred_cache) -> dict:
     all_conds = set(actual_cache.keys())
     results = {}
 
-    for split_name in ["combo_seen2", "combo_seen1", "combo_seen0"]:
+    for split_name in ["combo_seen1", "combo_seen0"]:
         combos = list(sg["test_subgroup"].get(split_name, []))
         log(f"\n--- {split_name} ({len(combos)} conditions) ---")
         split_results = []
@@ -259,20 +259,20 @@ def analyze(gears, pert_data, actual_cache, pred_cache) -> dict:
 def visualize(results: dict):
     os.makedirs(FIG_DIR, exist_ok=True)
 
-    seen2 = [r for r in results.get("combo_seen2", []) if "pearson_interaction" in r]
-    if not seen2:
+    seen1 = [r for r in results.get("combo_seen1", []) if "pearson_interaction" in r]
+    if not seen1:
         log("시각화 데이터 없음")
         return
 
-    conds      = [r["condition"] for r in seen2]
-    r_pred     = [r["pearson_combo"] for r in seen2]
-    r_add      = [r["pearson_additive_baseline"] for r in seen2]
-    r_int      = [r["pearson_interaction"] for r in seen2]
-    syn_ratio  = [r["actual_synergy_ratio"] for r in seen2]
-    syn_mag    = [r["actual_synergy_magnitude"] for r in seen2]
+    conds      = [r["condition"] for r in seen1]
+    r_pred     = [r["pearson_combo"] for r in seen1]
+    r_add      = [r["pearson_additive_baseline"] for r in seen1]
+    r_int      = [r["pearson_interaction"] for r in seen1]
+    syn_ratio  = [r["actual_synergy_ratio"] for r in seen1]
+    syn_mag    = [r["actual_synergy_magnitude"] for r in seen1]
 
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
-    fig.suptitle("Norman combo_seen2: GEARS+HCE 이중 섭동 상호작용 분석", fontsize=13)
+    fig.suptitle("Norman combo_seen1: GEARS+HCE 이중 섭동 상호작용 분석 (OOD)", fontsize=13)
 
     # (a) Model Pearson vs Additive Baseline Pearson
     ax = axes[0]
@@ -286,7 +286,7 @@ def visualize(results: dict):
     ax.fill_between([lo, hi], [lo, lo], [lo, hi], alpha=0.05, color="red")
     ax.set_xlabel("단순합산 Baseline Pearson", fontsize=11)
     ax.set_ylabel("GEARS+HCE Pearson", fontsize=11)
-    ax.set_title("(a) 모델 vs 단순합산\n(위쪽 = 모델 우세)", fontsize=11)
+    ax.set_title("(a) 모델 vs 단순합산 [combo_seen1]\n(위쪽 = 모델 우세)", fontsize=11)
     plt.colorbar(sc, ax=ax, label="시너지 비율")
     for i, c in enumerate(conds):
         ax.annotate(c, (r_add[i], r_pred[i]), fontsize=5.5,
@@ -355,7 +355,7 @@ def main():
     log("[ 전체 집계 결과 ]")
     log("=" * 60)
 
-    for split_name in ["combo_seen2", "combo_seen1", "combo_seen0"]:
+    for split_name in ["combo_seen1", "combo_seen0"]:
         entries = results.get(split_name, [])
         if not entries:
             continue
