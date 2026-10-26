@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hce-scgpt"
+version = "0.1.0"
+description = "Hierarchical objectives for single-cell perturbation models"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy", "torch"]
+
+[project.optional-dependencies]
+analysis = ["anndata", "pandas", "scipy", "scikit-learn", "matplotlib", "scanpy", "networkx", "obonet", "gseapy"]
+
+[tool.setuptools]
+packages = ["HCE", "HCE.jacobian"]
+package-dir = {HCE = ".", "HCE.jacobian" = "jacobian"}
+
+[tool.setuptools.package-data]
+HCE = ["hallmark_ontology.json"]

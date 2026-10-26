@@ -37,3 +37,10 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local inputs and new experiment runs
+.venv/
+data/
+runs/
+*.pt
+*.pth

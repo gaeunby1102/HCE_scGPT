@@ -10,13 +10,11 @@ Split 유형:
   unseen_single  : 훈련에 없는 단일 유전자 KO
 
 실행:
-    cd /data2/Atlas_Normal
     python -m HCE.eval_by_split
 """
 
 from __future__ import annotations
 import sys, os, json
-sys.path.insert(0, "/data2/Atlas_Normal")
 
 import numpy as np
 import torch

@@ -19,7 +19,6 @@ scGPT_brain + HCE 분류 헤드를 이용한 뇌 세포 in silico 유전자 섭�
 
 from __future__ import annotations
 import sys, os, json, warnings, time
-sys.path.insert(0, "/data2/Atlas_Normal")
 warnings.filterwarnings("ignore")
 
 import numpy as np
@@ -29,10 +28,12 @@ import torch.nn.functional as F
 import scanpy as sc
 from torch.utils.data import Dataset, DataLoader
 
-SCGPT_DIR  = "/data4/scGPT_brain"
-DATA_PATH  = "/data2/Atlas_Normal/IL17RD_scdiffeq/results/Input_fetal_neuron_subset_harmony_integration_250106.h5ad"
-MODEL_PATH = "/data2/Atlas_Normal/HCE/jacobian/results/hce_brain_best.pt"
-RESULTS_DIR = "/data2/Atlas_Normal/HCE/results"
+import HCE.config as cfg
+
+SCGPT_DIR = cfg.SCGPT_BRAIN_DIR
+DATA_PATH = cfg.BRAIN_ATLAS
+MODEL_PATH = os.path.join(cfg.JACOBIAN_RESULTS, "hce_brain_best.pt")
+RESULTS_DIR = cfg.RESULTS_ROOT
 LOG_PATH   = os.path.join(RESULTS_DIR, "brain_insilico_perturb.log")
 JSON_PATH  = os.path.join(RESULTS_DIR, "brain_insilico_perturb.json")
 

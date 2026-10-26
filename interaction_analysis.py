@@ -13,13 +13,11 @@ Norman 이중 섭동 상호작용 분석.
   (combo_seen2 제외: 훈련 셋 내 유전자로만 구성, 독립적 OOD 평가 불가)
 
 실행:
-    cd /data2/Atlas_Normal
     conda run -n gears2 python -m HCE.interaction_analysis
 """
 
 from __future__ import annotations
 import sys, os, json, pickle
-sys.path.insert(0, "/data2/Atlas_Normal")
 
 import numpy as np
 import torch

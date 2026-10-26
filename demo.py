@@ -34,7 +34,7 @@ def demo_ontology():
     print("=" * 60)
 
     from HCE.data_replogle import build_k562_go_ontology, LEAF_PATHWAYS, N_PATHWAYS
-    dag, term_to_idx = build_k512_go_ontology()
+    dag, term_to_idx = build_k562_go_ontology()
 
     print(f"  {dag}")
     print(f"  루트: {dag.get_roots()}")

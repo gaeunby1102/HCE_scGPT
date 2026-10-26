@@ -11,13 +11,11 @@ deep_interaction_analysis.py
   5. 쌍별 top-interacting 유전자 목록
 
 실행:
-    cd /data2/Atlas_Normal
     conda run -n gears2 python -m HCE.deep_interaction_analysis
 """
 
 from __future__ import annotations
 import sys, os, json, pickle
-sys.path.insert(0, "/data2/Atlas_Normal")
 
 import numpy as np
 import torch
