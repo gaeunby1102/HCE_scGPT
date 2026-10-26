@@ -19,7 +19,7 @@ The smoke test runs a forward and backward pass on synthetic tensors. It needs n
 
 Expression and a perturbation mask feed a shared representation, followed by two heads: one predicts expression changes, and the other predicts pathway labels.
 
-[`ontology.py`](ontology.py) represents child-to-parent relationships. [`loss.py`](loss.py) propagates leaf labels through that hierarchy and combines the classification objective with expression regression. [`model.py`](model.py) contains the standalone MLP; the GEARS and scGPT modules attach related heads to their respective backbones.
+[`ontology.py`](src/HCE/ontology.py) represents child-to-parent relationships. [`loss.py`](src/HCE/loss.py) propagates leaf labels through that hierarchy and combines the classification objective with expression regression. [`model.py`](src/HCE/model.py) contains the standalone MLP; the GEARS and scGPT modules attach related heads to their respective backbones.
 
 ## Recorded results
 
@@ -43,21 +43,26 @@ Install the data-analysis dependencies for K562 experiments:
 ```bash
 python -m pip install -e '.[analysis]'
 export HCE_K562_DATA=/path/to/K562_gwps_raw_bulk.h5ad
-python -m HCE.benchmark_ood
+python -m HCE.experiments.k562.benchmark_ood
 ```
 
 GEARS and scGPT runs need their own working upstream environments, datasets, and checkpoints. Install this repository into those environments with `python -m pip install --no-deps -e .`. The [setup notes](docs/setup.md) list the entry points and path settings. Training data and model weights are not included.
 
 ## Repository guide
 
-| Area | Files |
+Source code lives in [`src/HCE/`](src/HCE/). The core classes remain available through `from HCE import ...`; dataset-specific runs have separate module paths.
+
+| Directory | Contents |
 | --- | --- |
-| Ontologies and objectives | `ontology.py`, `loss.py`, `msigdb_ontology.py`, `go_ontology_full.py` |
-| Standalone perturbation model | `model.py`, `data_replogle.py`, `benchmark_ood.py`, `benchmark_full_go.py` |
-| GEARS experiments | `gears_hce.py`, `gears_norman_baseline.py`, `gears_norman_hce.py` |
-| scGPT experiments | `scgpt_hce.py`, `scgpt_norman_hce.py`, `scgpt_norman_finetune.py`, `scgpt_gears_hce.py` |
-| Evaluation | `eval_by_split.py`, `interaction_analysis.py`, `deep_interaction_analysis.py` |
-| Brain-cell attribution | [`jacobian/`](jacobian/README.md), `brain_insilico_perturb.py` |
-| Saved outputs | [`results/`](results/), [`jacobian/figures/`](jacobian/figures/) |
+| [`src/HCE/`](src/HCE/) | Ontology graph, losses, standalone models, path settings, and smoke test |
+| [`data/`](src/HCE/data/) | Replogle dataset loader |
+| [`ontologies/`](src/HCE/ontologies/) | GO and Hallmark builders and the bundled hierarchy |
+| [`integrations/`](src/HCE/integrations/) | GEARS and scGPT wrappers |
+| [`experiments/k562/`](src/HCE/experiments/k562/) | K562 demo and benchmarks |
+| [`experiments/norman/`](src/HCE/experiments/norman/) | Norman training, split evaluation, and interaction analysis |
+| [`experiments/brain/`](src/HCE/experiments/brain/) | Brain classifier, Jacobian analysis, and gene masking |
+| [`results/`](results/), [`jacobian/`](jacobian/README.md) | Saved experiment records and figures |
+
+The [code guide](docs/code-layout.md) gives the module boundaries and command changes. After updating from the earlier flat layout, rerun `python -m pip install -e .` in each environment that uses this repository.
 
 The brain perturbation run has zero baseline RG classification accuracy on its evaluation sample. Its rankings are retained for diagnosis, but they do not establish genes that drive a cell-state transition. The saved monotonicity metric also makes no comparisons with internal parent nodes; see the experiment notes before interpreting that score.

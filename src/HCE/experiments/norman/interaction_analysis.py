@@ -13,7 +13,7 @@ Norman 이중 섭동 상호작용 분석.
   (combo_seen2 제외: 훈련 셋 내 유전자로만 구성, 독립적 OOD 평가 불가)
 
 실행:
-    conda run -n gears2 python -m HCE.interaction_analysis
+    conda run -n gears2 python -m HCE.experiments.norman.interaction_analysis
 """
 
 from __future__ import annotations
@@ -31,8 +31,8 @@ from copy import deepcopy
 from gears import PertData
 from gears.utils import print_sys
 
-from HCE.gears_hce import GEARSWithHCE, GEARSModelWithHCE
-from HCE.data_replogle import build_k562_go_ontology
+from HCE.integrations.gears import GEARSWithHCE, GEARSModelWithHCE
+from HCE.data.replogle import build_k562_go_ontology
 from HCE.config import GEARS_DATA_DIR, GEARS_SAVE_NORMAN, RESULTS_ROOT
 
 DEVICE     = "cuda" if torch.cuda.is_available() else "cpu"

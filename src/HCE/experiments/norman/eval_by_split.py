@@ -10,7 +10,7 @@ Split 유형:
   unseen_single  : 훈련에 없는 단일 유전자 KO
 
 실행:
-    python -m HCE.eval_by_split
+    python -m HCE.experiments.norman.eval_by_split
 """
 
 from __future__ import annotations
@@ -25,8 +25,8 @@ from scipy.stats import pearsonr
 from gears import PertData
 from gears.utils import print_sys
 
-from HCE.gears_hce import GEARSWithHCE, GEARSModelWithHCE
-from HCE.data_replogle import build_k562_go_ontology
+from HCE.integrations.gears import GEARSWithHCE, GEARSModelWithHCE
+from HCE.data.replogle import build_k562_go_ontology
 from HCE.config import GEARS_DATA_DIR, GEARS_SAVE_NORMAN, RESULTS_ROOT
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"

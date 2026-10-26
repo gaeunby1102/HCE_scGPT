@@ -13,9 +13,9 @@ dependencies = ["numpy", "torch"]
 [project.optional-dependencies]
 analysis = ["anndata", "pandas", "scipy", "scikit-learn", "matplotlib", "scanpy", "networkx", "obonet", "gseapy"]
 
-[tool.setuptools]
-packages = ["HCE", "HCE.jacobian"]
-package-dir = {HCE = ".", "HCE.jacobian" = "jacobian"}
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["HCE*"]
 
 [tool.setuptools.package-data]
-HCE = ["hallmark_ontology.json"]
+"HCE.ontologies" = ["hallmark_ontology.json"]

@@ -10,7 +10,7 @@ scGPT_brain + HCE 분류 헤드를 이용한 뇌 세포 in silico 유전자 섭�
   4. RG → Neuroblast 전이를 유도하는 상위 유전자 순위화
 
 실행:
-    conda run -n scgpt python -m HCE.brain_insilico_perturb
+    conda run -n scgpt python -m HCE.experiments.brain.brain_insilico_perturb
 
 출력:
     HCE/results/brain_insilico_perturb.json

@@ -7,7 +7,7 @@ hallmark_ontology.json의 DAG 구조 + gseapy로 실제 유전자 목록 로드.
 data_replogle.py의 PATHWAY_GENES / build_k562_go_ontology()를 대체.
 
 사용:
-    from HCE.msigdb_ontology import build_hallmark_ontology, get_hallmark_pathway_genes
+    from HCE.ontologies.hallmark import build_hallmark_ontology, get_hallmark_pathway_genes
     dag, term_to_idx, pathway_genes = build_hallmark_ontology()
 """
 

@@ -1,31 +1,20 @@
 """
-scgpt_norman_finetune.py
-------------------------
-Task 2: scGPT_brain 마지막 2개 트랜스포머 레이어 + value_encoder 부분 해동
-        (partial unfreezing) + HCE loss → Norman 섭동 예측.
+scgpt_norman_hce.py
+-------------------
+scGPT_brain (frozen encoder) + HCE loss → Norman 섭동 예측.
 
 아키텍처:
-  scGPT_brain(ctrl_expr) → cell_emb (512D)
-    - transformer_encoder.layers[-2:] : 해동 (LR_SCGPT=1e-5)
-    - value_encoder                   : 해동 (LR_SCGPT=1e-5)
-    - 나머지 레이어                    : frozen
+  scGPT_brain(ctrl_expr) → cell_emb (512D)         [frozen]
   scGPT_brain.encoder(pert_gene) → pert_emb (512D)  [frozen]
   cat([cell_emb, pert_emb]) → predictor → Δexpr
                             → go_head   → GO logits → HCE loss
 
-학습 전략:
-  - AdamW: 두 개의 파라미터 그룹
-      * scGPT 해동 파라미터 → LR_SCGPT = 1e-5
-      * predictor / go_head → LR_HEAD  = 3e-4
-  - Gradient clipping: max_norm=1.0
-
 비교 대상:
-  GEARS baseline:        best Pearson=0.692, ep15=0.005 (붕괴)
-  GEARS+HCE:             best Pearson=0.817, ep15=0.700 (안정)
-  scGPT_brain+HCE frozen best Pearson=0.165, ep15=0.193 (참고)
+  GEARS baseline:  best Pearson=0.692, ep15=0.005 (붕괴)
+  GEARS+HCE:       best Pearson=0.817, ep15=0.70  (안정)
 
 실행:
-    python -m HCE.scgpt_norman_finetune
+    python -m HCE.experiments.norman.scgpt_norman_hce
 """
 from __future__ import annotations
 import os, json, time, warnings
@@ -49,12 +38,11 @@ MAX_SEQ     = 1200
 N_BINS      = 51
 EPOCHS      = 15
 BATCH       = 32
-LR_SCGPT    = 1e-5   # 해동된 scGPT 레이어 학습률
-LR_HEAD     = 3e-4   # predictor / go_head 학습률
+LR          = 3e-4
 LAMBDA_HCE  = 0.1
 
-LOG_PATH    = os.path.join(RESULT_DIR, "scgpt_norman_finetune.log")
-RESULT_PATH = os.path.join(RESULT_DIR, "scgpt_norman_finetune.json")
+LOG_PATH    = os.path.join(RESULT_DIR, "scgpt_norman_hce.log")
+RESULT_PATH = os.path.join(RESULT_DIR, "scgpt_norman_hce.json")
 
 
 # ── scGPT_brain 로드 ──────────────────────────────────────────────────
@@ -207,17 +195,11 @@ class NormanScGPTDataset(Dataset):
 # ── 모델 ──────────────────────────────────────────────────────────────
 class ScGPTNormanPredictor(nn.Module):
     """
-    scGPT_brain(부분 해동) + perturbation predictor + GO head.
-
-    해동 레이어:
-      - transformer_encoder.layers[-2:]  (마지막 2개 트랜스포머 레이어)
-      - value_encoder
-
-    나머지 scGPT 파라미터는 모두 frozen.
+    scGPT_brain(frozen) + perturbation predictor + GO head.
 
     forward(gene_ids, values, pad_mask, pert_gene_ids)
         cell_emb  = scGPT(gene_ids, values)        → (B, 512)
-        pert_emb  = scGPT.encoder(pert_gene_ids)   → (B, 512)  [frozen]
+        pert_emb  = scGPT.encoder(pert_gene_ids)   → (B, 512)
         combined  = cat([cell_emb, pert_emb])       → (B, 1024)
         delta     = predictor(combined)             → (B, n_genes)
         go_logits = go_head(combined)               → (B, n_go)
@@ -244,61 +226,17 @@ class ScGPTNormanPredictor(nn.Module):
         )
 
     def forward(self, gene_ids, values, pad_mask, pert_gene_ids):
-        # 해동된 레이어는 그래디언트 흐름을 허용하므로 no_grad 블록 없이 실행
-        out      = self.scgpt(gene_ids, values,
-                              src_key_padding_mask=pad_mask,
-                              CLS=False, MVC=False, ECS=False)
-        cell_emb = out["cell_emb"]                          # (B, 512)
-
-        # pert_emb: encoder는 여전히 frozen → no_grad
         with torch.no_grad():
-            pert_emb = self.scgpt.encoder(pert_gene_ids)    # (B, 512)
+            out      = self.scgpt(gene_ids, values,
+                                  src_key_padding_mask=pad_mask,
+                                  CLS=False, MVC=False, ECS=False)
+            cell_emb = out["cell_emb"]                          # (B, 512)
+            pert_emb = self.scgpt.encoder(pert_gene_ids)        # (B, 512)
 
         combined   = torch.cat([cell_emb, pert_emb], dim=-1)   # (B, 1024)
         delta_pred = self.predictor(combined)                   # (B, n_genes)
         go_logits  = self.go_head(combined)                     # (B, n_go)
         return delta_pred, go_logits
-
-
-# ── 파라미터 그룹 분리 ────────────────────────────────────────────────
-def get_param_groups(model: ScGPTNormanPredictor):
-    """
-    두 개의 파라미터 그룹 반환:
-      1. scGPT 해동 파라미터 → LR_SCGPT
-      2. predictor / go_head → LR_HEAD
-    """
-    scgpt_params = []
-    head_params  = []
-
-    # 해동 대상: transformer_encoder.layers[-2:], value_encoder
-    unfrozen_modules = []
-    try:
-        enc_layers = model.scgpt.transformer_encoder.layers
-        unfrozen_modules.extend(list(enc_layers[-2:]))
-    except AttributeError:
-        pass
-    try:
-        unfrozen_modules.append(model.scgpt.value_encoder)
-    except AttributeError:
-        pass
-
-    unfrozen_param_ids = set()
-    for m in unfrozen_modules:
-        for p in m.parameters():
-            if p.requires_grad:
-                scgpt_params.append(p)
-                unfrozen_param_ids.add(id(p))
-
-    # predictor / go_head
-    for p in model.predictor.parameters():
-        head_params.append(p)
-    for p in model.go_head.parameters():
-        head_params.append(p)
-
-    return [
-        {"params": scgpt_params, "lr": LR_SCGPT},
-        {"params": head_params,  "lr": LR_HEAD},
-    ]
 
 
 # ── 분할 ──────────────────────────────────────────────────────────────
@@ -365,8 +303,7 @@ def main():
             print(msg); logf.write(msg + "\n"); logf.flush()
 
         log("=" * 65)
-        log("Task 2: scGPT_brain 부분 해동 (last 2 layers + value_encoder) + HCE")
-        log("        → Norman 섭동 예측")
+        log("scGPT_brain(frozen) + HCE → Norman 섭동 예측")
         log("=" * 65)
 
         # [1] scGPT 로드
@@ -374,37 +311,14 @@ def main():
         scgpt_model, vocab, args = load_scgpt()
         d_model = args["embsize"]
         pad_id  = vocab["<pad>"]
-
-        # 전체 frozen 후 선택적 해동
         for p in scgpt_model.parameters():
             p.requires_grad_(False)
-
-        n_unfrozen = 0
-        try:
-            enc_layers = scgpt_model.transformer_encoder.layers
-            for layer in enc_layers[-2:]:
-                for p in layer.parameters():
-                    p.requires_grad_(True)
-                    n_unfrozen += p.numel()
-            log(f"  transformer_encoder.layers[-2:] 해동 완료")
-        except AttributeError:
-            log("  [경고] transformer_encoder.layers 접근 불가 - 스킵")
-
-        try:
-            for p in scgpt_model.value_encoder.parameters():
-                p.requires_grad_(True)
-                n_unfrozen += p.numel()
-            log(f"  value_encoder 해동 완료")
-        except AttributeError:
-            log("  [경고] value_encoder 접근 불가 - 스킵")
-
-        scgpt_model.eval()   # dropout 등 eval 모드 유지 (BN 통계 고정)
+        scgpt_model.eval()
         log(f"  vocab={len(vocab)}, d_model={d_model}, layers={args['nlayers']}")
-        log(f"  해동 파라미터 수: {n_unfrozen:,}")
 
         # [2] GO 온톨로지
         log("\n[2] MSigDB Hallmark 온톨로지...")
-        from HCE.msigdb_ontology import build_hallmark_ontology
+        from HCE.ontologies.hallmark import build_hallmark_ontology
         dag, term_to_idx, pathway_genes = build_hallmark_ontology()
         n_go = len(term_to_idx)
         log(f"  GO terms: {n_go}, DAG nodes: {len(dag.nodes)}")
@@ -437,33 +351,19 @@ def main():
         # [5] 모델 & Loss
         log("\n[5] 모델 초기화...")
         model = ScGPTNormanPredictor(scgpt_model, n_genes, n_go, d_model).to(DEVICE)
-
         from HCE.loss import HierarchicalPerturbationLoss
         loss_fn = HierarchicalPerturbationLoss(
             ontology=dag, go_term_to_idx=term_to_idx,
             lambda_reg=1.0, lambda_cls=LAMBDA_HCE,
         ).to(DEVICE)
 
-        # 두 파라미터 그룹으로 AdamW 구성
-        param_groups = get_param_groups(model)
-        n_scgpt_trainable = sum(p.numel() for p in param_groups[0]["params"])
-        n_head_trainable  = sum(p.numel() for p in param_groups[1]["params"])
-        opt = optim.AdamW(param_groups, weight_decay=1e-4)
+        trainable = list(model.predictor.parameters()) + list(model.go_head.parameters())
+        opt = optim.AdamW(trainable, lr=LR, weight_decay=1e-4)
         scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, EPOCHS)
 
-        log(f"  scGPT 해동 파라미터: {n_scgpt_trainable:,}  (lr={LR_SCGPT})")
-        log(f"  head 파라미터:       {n_head_trainable:,}  (lr={LR_HEAD})")
+        n_params = sum(p.numel() for p in trainable)
+        log(f"  학습 파라미터: {n_params:,}  (scGPT {d_model}D frozen)")
         log(f"  λ_HCE={LAMBDA_HCE}, epochs={EPOCHS}, batch={BATCH}, device={DEVICE}")
-        log(f"  gradient clipping: max_norm=1.0")
-
-        # 전체 학습 가능 파라미터 (gradient clipping용)
-        all_trainable = (
-            list(model.scgpt.parameters()) +
-            list(model.predictor.parameters()) +
-            list(model.go_head.parameters())
-        )
-        # requires_grad=True인 것만 필터
-        all_trainable = [p for p in all_trainable if p.requires_grad]
 
         # [6] 학습
         log(f"\n[6] 학습 시작...")
@@ -485,11 +385,7 @@ def main():
                 delta_pred, go_logits = model(gene_ids, values, pad_mask, pert_ids)
                 loss, info = loss_fn(delta_pred, delta, go_logits, go_lbl)
 
-                opt.zero_grad()
-                loss.backward()
-                # Gradient clipping: 모든 학습 가능 파라미터에 적용
-                torch.nn.utils.clip_grad_norm_(all_trainable, max_norm=1.0)
-                opt.step()
+                opt.zero_grad(); loss.backward(); opt.step()
                 total_loss += loss.item(); n_batch += 1
 
             scheduler.step()
@@ -512,38 +408,31 @@ def main():
         log("\n" + "=" * 65)
         log("결과 비교")
         log("-" * 65)
-        log(f"  {'모델':36s} {'Best Pearson':>13s} {'ep15 Pearson':>13s}")
-        log(f"  {'GEARS baseline':36s} {'0.692':>13s} {'0.005':>13s}  ← 붕괴")
-        log(f"  {'GEARS + HCE (λ=0.3)':36s} {'0.817':>13s} {'0.700':>13s}  ← 안정")
-        log(f"  {'scGPT_brain + HCE (frozen)':36s} {'0.165':>13s} {'0.193':>13s}  ← Task 1")
-        log(f"  {f'scGPT_brain + HCE (finetune, λ={LAMBDA_HCE})':36s} "
-            f"{best_val:>13.4f} {history[-1]['val_pearson']:>13.4f}  ← Task 2")
+        log(f"  {'모델':30s} {'Best Pearson':>13s} {'ep15 Pearson':>13s}")
+        log(f"  {'GEARS baseline':30s} {'0.692':>13s} {'0.005':>13s}  ← 붕괴")
+        log(f"  {'GEARS + HCE (λ=0.3)':30s} {'0.817':>13s} {'0.700':>13s}  ← 안정")
+        log(f"  {f'scGPT_brain + HCE (λ={LAMBDA_HCE})':30s} "
+            f"{best_val:>13.4f} {history[-1]['val_pearson']:>13.4f}")
         log(f"\n  → test Pearson = {test_r:.4f} ± {test_std:.4f}  (best ep={best_ep})")
         log("=" * 65)
 
         # 저장
         results = {
-            "model": f"scGPT_brain + HCE finetune (λ={LAMBDA_HCE})",
-            "task": "Task 2: partial unfreezing - last 2 transformer layers + value_encoder",
+            "model": f"scGPT_brain + HCE (λ={LAMBDA_HCE})",
             "lambda_hce": LAMBDA_HCE,
-            "lr_scgpt": LR_SCGPT,
-            "lr_head": LR_HEAD,
             "epochs": EPOCHS,
             "d_model": d_model,
             "n_go_terms": n_go,
-            "n_scgpt_unfrozen_params": n_scgpt_trainable,
             "best_val_pearson": best_val,
             "best_epoch": best_ep,
             "test_pearson": test_r,
             "test_pearson_std": test_std,
             "history": history,
             "comparison": {
-                "GEARS_baseline_best":      0.692,
-                "GEARS_baseline_ep15":      0.005,
-                "GEARS_HCE_best":           0.817,
-                "GEARS_HCE_ep15":           0.700,
-                "scGPT_brain_HCE_frozen_best": 0.165,
-                "scGPT_brain_HCE_frozen_ep15": 0.193,
+                "GEARS_baseline_best": 0.692,
+                "GEARS_baseline_ep15": 0.005,
+                "GEARS_HCE_best":      0.817,
+                "GEARS_HCE_ep15":      0.700,
             },
         }
         with open(RESULT_PATH, "w") as f:

@@ -5,7 +5,7 @@ GEARS_Model + HCE 헤드를 서브클래싱으로 통합.
 gears2 conda 환경에서 실행해야 함.
 
 사용 예시:
-    python -m HCE.gears_hce
+    python -m HCE.integrations.gears
 
 핵심 변경사항
 -------------
@@ -38,7 +38,7 @@ from gears.utils import loss_fct, print_sys
 from gears.inference import evaluate, compute_metrics
 
 # HCE 모듈
-from HCE.data_replogle import (
+from HCE.data.replogle import (
     build_k562_go_ontology,
     PATHWAY_GENES,
     PATHWAY_TO_IDX,

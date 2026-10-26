@@ -5,7 +5,7 @@ Full GO (BP+CC+MF, ~3,693 terms) 온톨로지로 K562 OOD 벤치마크.
 gene2go 실제 어노테이션 기반 GO 라벨 사용.
 
 실행:
-    python -m HCE.benchmark_full_go
+    python -m HCE.experiments.k562.benchmark_full_go
 """
 from __future__ import annotations
 import sys, os, json, pickle, time
@@ -249,7 +249,7 @@ def run_benchmark(dataset, term_to_idx, dag, lam, logf):
 
 
 def main():
-    from HCE.go_ontology_full import load_or_build_go_dag
+    from HCE.ontologies.go import load_or_build_go_dag
 
     with open(LOG_PATH, "w") as logf:
         log("=" * 65, logf)

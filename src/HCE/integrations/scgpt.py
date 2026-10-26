@@ -11,7 +11,7 @@ HCE 헤드가 부착된 래퍼 모델과 HCE-aware train 함수를 제공.
     train 루프에서 기존 loss + λ·HCE_loss
 
 실행:
-    python -m HCE.scgpt_hce
+    python -m HCE.integrations.scgpt
 """
 
 from __future__ import annotations
@@ -213,7 +213,7 @@ class MockScGPT(nn.Module):
 
 def test_scgpt_hce_structure():
     """scGPT + HCE 래퍼 구조 검증 (실제 scGPT 모델 없이)."""
-    from HCE.msigdb_ontology import build_hallmark_ontology
+    from HCE.ontologies.hallmark import build_hallmark_ontology
     from HCE.loss import HierarchicalPerturbationLoss
 
     dag, term_to_idx, _ = build_hallmark_ontology()

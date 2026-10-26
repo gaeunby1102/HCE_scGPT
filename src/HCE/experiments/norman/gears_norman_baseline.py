@@ -4,7 +4,7 @@ gears_norman_baseline.py
 GEARS (HCE 없이) Norman 데이터 학습 → GEARSWithHCE (λ=0.3)과 비교.
 
 실행:
-    python -m HCE.gears_norman_baseline
+    python -m HCE.experiments.norman.gears_norman_baseline
 """
 from __future__ import annotations
 import sys, os, json

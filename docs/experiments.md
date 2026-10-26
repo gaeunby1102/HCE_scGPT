@@ -25,7 +25,7 @@ The historical [`norman_comparison.json`](../results/norman_comparison.json) and
 
 ## Double-perturbation interactions
 
-[`interaction_analysis.py`](../interaction_analysis.py) compares double-perturbation responses with an additive single-perturbation baseline. [`deep_interaction_analysis.py`](../deep_interaction_analysis.py) examines individual cases and GO overlap. Their outputs are in [`interaction_analysis.json`](../results/interaction_analysis.json), [`deep_interaction_analysis.json`](../results/deep_interaction_analysis.json), and [`results/figures/`](../results/figures/).
+[`interaction_analysis.py`](../src/HCE/experiments/norman/interaction_analysis.py) compares double-perturbation responses with an additive single-perturbation baseline. [`deep_interaction_analysis.py`](../src/HCE/experiments/norman/deep_interaction_analysis.py) examines individual cases and GO overlap. Their outputs are in [`interaction_analysis.json`](../results/interaction_analysis.json), [`deep_interaction_analysis.json`](../results/deep_interaction_analysis.json), and [`results/figures/`](../results/figures/).
 
 Expression-profile correlation and interaction-residual correlation answer different questions. A model can score well on the former while missing the non-additive part of a response.
 

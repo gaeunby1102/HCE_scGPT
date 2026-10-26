@@ -4,7 +4,7 @@ gears_norman_hce.py
 Norman 데이터 + PertData 파이프라인으로 GEARSWithHCE 전체 학습.
 
 실행:
-    python -m HCE.gears_norman_hce
+    python -m HCE.experiments.norman.gears_norman_hce
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 
 from gears import PertData
 import HCE.config as cfg
-from HCE.gears_hce import GEARSWithHCE
+from HCE.integrations.gears import GEARSWithHCE
 
 DATA_PATH   = cfg.GEARS_DATA_DIR
 DEVICE      = "cuda"

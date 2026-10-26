@@ -21,7 +21,7 @@ scGPT 초기화 효과:
   scGPT + GEARS + HCE: (본 실험 결과)
 
 실행:
-    python -m HCE.scgpt_gears_hce
+    python -m HCE.experiments.norman.scgpt_gears_hce
 """
 from __future__ import annotations
 import os, json, time, warnings
@@ -264,7 +264,7 @@ def main():
 
         # [3] GEARSWithHCE 초기화
         log("\n[3] GEARSWithHCE 초기화...")
-        from HCE.gears_hce import GEARSWithHCE
+        from HCE.integrations.gears import GEARSWithHCE
         gears = GEARSWithHCE(pert_data, device=DEVICE)
         gears.model_initialize_hce(
             hidden_size=HIDDEN_SIZE,

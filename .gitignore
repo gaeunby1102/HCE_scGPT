@@ -40,7 +40,7 @@ Thumbs.db
 
 # Local inputs and new experiment runs
 .venv/
-data/
-runs/
+/data/
+/runs/
 *.pt
 *.pth

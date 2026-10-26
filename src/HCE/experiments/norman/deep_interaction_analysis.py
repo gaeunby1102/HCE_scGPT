@@ -11,7 +11,7 @@ deep_interaction_analysis.py
   5. 쌍별 top-interacting 유전자 목록
 
 실행:
-    conda run -n gears2 python -m HCE.deep_interaction_analysis
+    conda run -n gears2 python -m HCE.experiments.norman.deep_interaction_analysis
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ import networkx as nx
 from gears import PertData
 from gears.utils import print_sys
 
-from HCE.gears_hce import GEARSWithHCE, GEARSModelWithHCE
+from HCE.integrations.gears import GEARSWithHCE, GEARSModelWithHCE
 from HCE.config import GEARS_DATA_DIR, GEARS_SAVE_NORMAN, RESULTS_ROOT
 
 DEVICE     = "cuda" if torch.cuda.is_available() else "cpu"

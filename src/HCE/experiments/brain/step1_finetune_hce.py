@@ -5,7 +5,7 @@ scGPT_brain (13.2M brain cells) + HCE Cell Type Classifier 파인튜닝.
 Brain Cell Ontology (4 계층) + HierarchicalCrossEntropyLoss.
 
 실행:
-    python -m HCE.jacobian.step1_finetune_hce
+    python -m HCE.experiments.brain.step1_finetune_hce
 """
 from __future__ import annotations
 import sys, os, json, warnings
@@ -340,7 +340,7 @@ def main():
         log(f"  {ct:12s}: {c}/{t} ({c/max(t,1):.3f})")
 
     log("\nStep 1 완료. Step 2 (Jacobian 계산)을 실행하세요.")
-    log(f"  python -m HCE.jacobian.step2_hce_jacobian")
+    log(f"  python -m HCE.experiments.brain.step2_hce_jacobian")
 
 
 if __name__ == "__main__":

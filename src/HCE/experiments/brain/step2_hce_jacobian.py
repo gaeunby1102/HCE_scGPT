@@ -5,7 +5,7 @@ HCE fine-tuned scGPT_brain으로 Jacobian 계산.
 ∂P(ontology_node_k) / ∂(gene_expression_values) for all 8 brain cell ontology nodes.
 
 실행:
-    python -m HCE.jacobian.step2_hce_jacobian
+    python -m HCE.experiments.brain.step2_hce_jacobian
 """
 from __future__ import annotations
 import os, json, warnings
@@ -17,7 +17,7 @@ import torch.nn as nn
 import scanpy as sc
 from collections import defaultdict
 
-from HCE.jacobian.step1_finetune_hce import (
+from HCE.experiments.brain.step1_finetune_hce import (
     build_brain_cell_ontology, load_scgpt_brain,
     BrainCellDataset, ScGPTBrainHCE,
     LEAF_TO_IDX, CELL_TYPES, N_CELLS, MAX_SEQ, N_BINS,
@@ -251,7 +251,7 @@ def main():
             monotone = np.mean(np.array(parent_scores) >= np.array(child_scores))
             log(f"  {child:22s} → {parent:18s}: {monotone:.3f} ({len(child_scores)} 유전자)")
 
-    log(f"\nStep 2 완료. Step 3 시각화: python -m HCE.jacobian.step3_visualize")
+    log(f"\nStep 2 완료. Step 3 시각화: python -m HCE.experiments.brain.step3_visualize")
 
 
 if __name__ == "__main__":

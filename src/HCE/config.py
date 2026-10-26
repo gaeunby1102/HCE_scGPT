@@ -9,12 +9,23 @@ config.py
     export HCE_SCGPT_BRAIN=/your/path/scGPT_brain
 """
 import os
+from pathlib import Path
+
+# Editable checkouts keep outputs beside the repository's saved results.
+# Installed wheels use the working directory, never the package directory.
+_SOURCE_ROOT = Path(__file__).resolve().parents[2]
+_OUTPUT_ROOT = (
+    _SOURCE_ROOT
+    if (_SOURCE_ROOT / "pyproject.toml").is_file()
+    and (_SOURCE_ROOT / "src" / "HCE").is_dir()
+    else Path.cwd()
+)
 
 # ── 루트 디렉토리 ──────────────────────────────────────────────────────
 # 데이터/모델 저장소 기본 경로 (환경변수로 오버라이드)
 DATA_ROOT    = os.environ.get("HCE_DATA_ROOT",    "./data")
 RESULTS_ROOT = os.environ.get("HCE_RESULTS_ROOT",
-                               os.path.join(os.path.dirname(__file__), "results"))
+                               os.path.join(_OUTPUT_ROOT, "results"))
 
 # ── 데이터 파일 ────────────────────────────────────────────────────────
 # Replogle K562 GWPS perturbation data
@@ -63,5 +74,5 @@ SCGPT_BRAIN_DIR = os.environ.get(
 # ── 결과 저장 ──────────────────────────────────────────────────────────
 JACOBIAN_RESULTS = os.environ.get(
     "HCE_JACOBIAN_RESULTS",
-    os.path.join(os.path.dirname(__file__), "jacobian", "results"),
+    os.path.join(_OUTPUT_ROOT, "jacobian", "results"),
 )

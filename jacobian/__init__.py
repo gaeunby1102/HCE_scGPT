@@ -1,1 +1,0 @@
-# HCE Jacobian Analysis

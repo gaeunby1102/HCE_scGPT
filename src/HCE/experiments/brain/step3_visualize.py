@@ -5,7 +5,7 @@ HCE Jacobian 결과 시각화 + 리포트 생성.
 Step 2 결과 (jacobian_results.json)를 기반으로 그림 4개 생성.
 
 실행:
-    python -m HCE.jacobian.step3_visualize
+    python -m HCE.experiments.brain.step3_visualize
 """
 from __future__ import annotations
 import os, json
@@ -17,7 +17,7 @@ import matplotlib.gridspec as gridspec
 from matplotlib.colors import LogNorm
 import warnings; warnings.filterwarnings("ignore")
 
-from HCE.jacobian.step1_finetune_hce import LEAF_TO_IDX, CELL_TYPES, SAVE_DIR
+from HCE.experiments.brain.step1_finetune_hce import LEAF_TO_IDX, CELL_TYPES, SAVE_DIR
 
 RESULT_JSON = os.path.join(SAVE_DIR, "jacobian_results.json")
 FIG_DIR     = os.path.join(SAVE_DIR, "figures")

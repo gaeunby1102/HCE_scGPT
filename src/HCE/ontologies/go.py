@@ -11,7 +11,7 @@ HCE에 사용할 OntologyDAG + 유전자 목록 구성.
     4. gene2go_all.pkl (GEARS) 로 gene → GO term 매핑
 
 실행:
-    python -m HCE.go_ontology_full
+    python -m HCE.ontologies.go
 """
 
 from __future__ import annotations

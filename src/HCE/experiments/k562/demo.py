@@ -4,7 +4,7 @@ demo.py
 HCE 모듈 데모: Replogle K562 실제 섭동 데이터로 전체 파이프라인 실행.
 
 실행:
-    python -m HCE.demo
+    python -m HCE.experiments.k562.demo
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ def demo_ontology():
     print("Demo 1: K562 GO 온톨로지 구조")
     print("=" * 60)
 
-    from HCE.data_replogle import build_k562_go_ontology, LEAF_PATHWAYS, N_PATHWAYS
+    from HCE.data.replogle import build_k562_go_ontology, LEAF_PATHWAYS, N_PATHWAYS
     dag, term_to_idx = build_k562_go_ontology()
 
     print(f"  {dag}")
@@ -57,7 +57,7 @@ def demo_data_loading():
     print("Demo 2: Replogle K562 데이터 로딩")
     print("=" * 60)
 
-    from HCE.data_replogle import ReplogleDataset, N_PATHWAYS, LEAF_PATHWAYS
+    from HCE.data.replogle import ReplogleDataset, N_PATHWAYS, LEAF_PATHWAYS
 
     dataset = ReplogleDataset(DATA_PATH, gene_subset=GENE_SUBSET)
     train_ds, val_ds, test_ds = dataset.get_splits(train_ratio=0.8, val_ratio=0.1)
@@ -89,7 +89,7 @@ def demo_hce_training(dataset=None):
     print("Demo 3: HCEPerturbationPredictor 학습 (K562 실제 데이터)")
     print("=" * 60)
 
-    from HCE.data_replogle import ReplogleDataset, build_k562_go_ontology, N_PATHWAYS
+    from HCE.data.replogle import ReplogleDataset, build_k562_go_ontology, N_PATHWAYS
     from HCE.model import HCEPerturbationPredictor
 
     if dataset is None:
@@ -249,7 +249,7 @@ def demo_hce_training(dataset=None):
 
 if __name__ == "__main__":
     # Demo 1: 온톨로지
-    from HCE.data_replogle import build_k562_go_ontology, LEAF_PATHWAYS, N_PATHWAYS
+    from HCE.data.replogle import build_k562_go_ontology, LEAF_PATHWAYS, N_PATHWAYS
     print("=" * 60)
     print("Demo 1: K562 GO 온톨로지 구조")
     print("=" * 60)
@@ -263,7 +263,7 @@ if __name__ == "__main__":
     print()
 
     # Demo 2 + 3: 데이터 로딩 + 학습
-    from HCE.data_replogle import ReplogleDataset
+    from HCE.data.replogle import ReplogleDataset
     print("=" * 60)
     print("Demo 2: Replogle K562 데이터 로딩")
     print("=" * 60)
